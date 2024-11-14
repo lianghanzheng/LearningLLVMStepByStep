@@ -1,8 +1,8 @@
 #ifndef EXEC2_PARSER_H_
 #define EXEC2_PARSER_H_
 
-#include "Lexer.h"
-#include "AST.h"
+#include "./Lexer.h"
+#include "./AST.h"
 
 class Parser {
 public:

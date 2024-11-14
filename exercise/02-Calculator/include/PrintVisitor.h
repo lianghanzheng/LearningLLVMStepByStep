@@ -1,7 +1,7 @@
 #ifndef EXEC2_PRINTVISITOR_H_
 #define EXEC2_PRINTVISITOR_H_
 
-#include "AST.h"
+#include "./AST.h"
 
 struct PrintVisitor : Visitor {
   PrintVisitor(std::shared_ptr<Program> prog);

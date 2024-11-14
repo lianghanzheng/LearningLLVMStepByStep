@@ -1,4 +1,4 @@
-#include "Lexer.h"
+#include "../include/Lexer.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/FormatVariadic.h"

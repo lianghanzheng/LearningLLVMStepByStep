@@ -1,7 +1,7 @@
 #ifndef EXEC2_CODEGEN_H_
 #define EXEC2_CODEGEN_H_
 
-#include "AST.h"
+#include "./AST.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/IRBuilder.h"

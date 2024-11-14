@@ -1,5 +1,5 @@
-#include "Parser.h"
-#include "Lexer.h"
+#include "../include/Parser.h"
+#include "../include/Lexer.h"
 #include "llvm/Support/raw_ostream.h"
 #include <cassert>
 #include <cstdlib>
