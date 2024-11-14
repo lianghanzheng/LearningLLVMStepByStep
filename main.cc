@@ -39,9 +39,9 @@ int main(int argc, char **argv) {
   Parser parser(lexer, sema);
 
   auto prog = parser.parseProgram();
-  PrintVisitor pv(prog);
+  //PrintVisitor pv(prog);
 
-  //CodegenVisitor cg(prog);
+  CodegenVisitor cg(prog);
 
   return 0;
 }

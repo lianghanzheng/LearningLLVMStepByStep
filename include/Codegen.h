@@ -2,6 +2,8 @@
 #define CODEGEN_H_
 
 #include "AST.h"
+
+#include "llvm/ADT/StringMap.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/IRBuilder.h"
@@ -21,6 +23,8 @@ private:
   llvm::LLVMContext context;
   std::shared_ptr<llvm::Module> m;
   llvm::IRBuilder<> builder{context};
+
+  llvm::StringMap<llvm::Value *> varAddrMap;
 };
 
 #endif // CODEGEN_H_

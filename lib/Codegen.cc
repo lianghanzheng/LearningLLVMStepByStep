@@ -5,6 +5,7 @@
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/Casting.h"
@@ -36,14 +37,18 @@ llvm::Value *CodegenVisitor::visitProgram(Program *prog) {
   llvm::BasicBlock *entryBB = BasicBlock::Create(context, "entry", mainFunc);
   builder.SetInsertPoint(entryBB);
   
-  for(auto &expr: prog->exprVec) {
+
+  llvm::Value *finalValue = nullptr;
+  for (auto &expr: prog->exprVec) {
     llvm::Value *value = expr->accept(this);
-    // To avoid the ConstantFolder in builder by default.
-    (void)builder.CreateCall(printfFunc, {
-        builder.CreateGlobalString("Expr value = %d\n"),
-        value
-    });
+    finalValue = value;
   }
+  
+  // To avoid the ConstantFolder in builder by default.
+  (void)builder.CreateCall(printfFunc, {
+      builder.CreateGlobalString("Expr value = %d\n"),
+      finalValue
+  });
   
   (void)builder.CreateRet(builder.getInt32(0));
 
@@ -78,18 +83,36 @@ llvm::Value *CodegenVisitor::visitBinaryExpr(BinaryExpr *binaryExpr) {
   return value;
 }
 
-llvm::Value *CodegenVisitor::visitVariableDecl(VariableDecl *) {
-  return nullptr;
+llvm::Value *CodegenVisitor::visitVariableDecl(VariableDecl *variableDecl) {
+  llvm::Type *ty = nullptr;
+  if (variableDecl->ty == CType::getIntTy()) {
+    ty = builder.getInt32Ty();
+  }
+
+  llvm::Value *declValue =  builder.CreateAlloca(ty, nullptr, variableDecl->name);
+  varAddrMap.insert({variableDecl->name, declValue});
+
+  return declValue;
 }
 
-llvm::Value *CodegenVisitor::visitAssignExpr(AssignExpr *) {
-  return nullptr;
+llvm::Value *CodegenVisitor::visitAssignExpr(AssignExpr *assignExpr) {
+  VariableExpr *varExpr = static_cast<VariableExpr *>(assignExpr->lhs.get());
+  llvm::Value *lhsVar = varAddrMap[varExpr->name];
+  llvm::Value *rhsValue =  assignExpr->rhs->accept(this);
+
+  return builder.CreateStore(rhsValue, lhsVar);
 }
 
 llvm::Value *CodegenVisitor::visitNumberExpr(NumberExpr *numberExpr) {
   return builder.getInt32(numberExpr->number);
 }
 
-llvm::Value *CodegenVisitor::visitVariableExpr(VariableExpr *) {
-  return nullptr;
+llvm::Value *CodegenVisitor::visitVariableExpr(VariableExpr *variableExpr) {
+  llvm::Value *varAddr = varAddrMap[variableExpr->name];
+  llvm::Type *ty = nullptr;
+  if (variableExpr->ty == CType::getIntTy()) {
+    ty = builder.getInt32Ty();
+  }
+
+  return builder.CreateLoad(ty, varAddr, variableExpr->name);
 }
