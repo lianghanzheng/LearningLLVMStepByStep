@@ -23,3 +23,7 @@ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_ASSERTIONS=OFF -DLLVM_OP
 cmake -B build -S .
 cmake --build build
 ```
+
+## 当前版本的缺陷
+
+1. 在AST中的 `VariableExpr` 听起来像是 `a+b` 这样的表达式，其实它表示的是 `a` 这样的对标识符的访问

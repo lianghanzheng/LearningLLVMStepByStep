@@ -1,5 +1,6 @@
 build/
 .cache
+.clangd
 
 # Compiled Object files
 *.slo

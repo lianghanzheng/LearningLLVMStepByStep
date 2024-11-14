@@ -1,0 +1,9 @@
+add_llvm_library(TinyCFrontend
+  Lexer.cc
+  Parser.cc
+  Codegen.cc
+  PrintVisitor.cc
+  Type.cc
+  Scope.cc
+  Sema.cc
+)

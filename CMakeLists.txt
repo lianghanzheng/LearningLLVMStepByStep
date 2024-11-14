@@ -28,8 +28,13 @@ include_directories("${CMAKE_SOURCE_DIR}/include")
 # Linkage configuration
 set(LLVM_LINK_COMPONENTS Support Core)
 
-# Binary output
-add_llvm_executable(tinycc main.cc)
-
 # Subdirectories
 add_subdirectory(exercise)
+add_subdirectory(lib)
+
+# Binary output
+add_llvm_executable(tinycc main.cc)
+target_link_libraries(tinycc
+  PRIVATE
+  TinyCFrontend
+)
