@@ -17,10 +17,13 @@ private:
   Token tok;
   Sema sema;
 
-  std::vector<std::shared_ptr<ASTNode>> parseDecl();
-  std::shared_ptr<ASTNode> parseTerm();
-  std::shared_ptr<ASTNode> parseFactor();
+  std::vector<std::shared_ptr<ASTNode>> parseDeclStmt();
+  std::shared_ptr<ASTNode> parseExprStmt();
   std::shared_ptr<ASTNode> parseExpr();
+  std::shared_ptr<ASTNode> parseAssignExpr();
+  std::shared_ptr<ASTNode> parseAddsubExpr();
+  std::shared_ptr<ASTNode> parseMuldivExpr();
+  std::shared_ptr<ASTNode> parsePrimaryExpr();
 
   bool expect(TokenType tokenType);
   bool consume(TokenType tokenType);

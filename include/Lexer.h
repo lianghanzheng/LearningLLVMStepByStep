@@ -41,11 +41,22 @@ public:
   Lexer(llvm::StringRef sourceCode);
   void nextToken(Token &tok);
 
+  // For LL(1) parser.
+  void saveState(); 
+  void restoreState();
+
 private:
   const char *BufPtr;
   const char *LineHeadPtr;
   const char *BufEnd;
   uint32_t row;
+
+  struct State {
+    const char *BufPtr;
+    const char *LineHeadPtr;
+    const char *BufEnd;
+    uint32_t row;
+  } state;
 };
 
 

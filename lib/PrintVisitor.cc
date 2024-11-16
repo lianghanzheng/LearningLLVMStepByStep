@@ -60,9 +60,11 @@ llvm::Value *PrintVisitor::visitVariableDecl(VariableDecl *variableDecl) {
 
 
 llvm::Value *PrintVisitor::visitAssignExpr(AssignExpr *assignExpr) {
+  llvm::outs() << "(";
   assignExpr->lhs->accept(this);
   llvm::outs() << " = ";
   assignExpr->rhs->accept(this);
+  llvm::outs() << ")";
 
   return nullptr;
 }

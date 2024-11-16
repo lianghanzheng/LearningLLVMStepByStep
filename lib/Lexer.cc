@@ -127,3 +127,17 @@ void Lexer::nextToken(Token &tok) {
   tok.content = llvm::StringRef(start, BufPtr-start);
   return;  
 }
+
+void Lexer::saveState() {
+  state.BufPtr = this->BufPtr;
+  state.LineHeadPtr = this->LineHeadPtr;
+  state.BufEnd = this->BufEnd;
+  state.row = this->row;
+}
+
+void Lexer::restoreState() {
+  this->BufPtr = state.BufPtr;
+  this->LineHeadPtr = state.LineHeadPtr;
+  this->BufEnd = state.BufEnd;
+  this->row = state.row;
+}

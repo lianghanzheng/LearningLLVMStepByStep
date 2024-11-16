@@ -1,16 +1,32 @@
 prog 
-    : (decl_stmt | expr_stmt)*
+    : stmt*
+    ;
+stmt
+    : decl_stmt | expr_stmt | null_stmt
     ;
 decl_stmt
-    : 'int' identifier ('=' expr)? ';' 
+    : 'int' identifier ('=' expr)? (',' identifier ('=' expr)?)* ';' 
+    ;
+expr_stmt
+    : expr ';'
+    ;
+null_stmt
+    : ';'
     ;
 expr  
-    : term (['+' | '-'] term)*
+    : addsub_expr
+    | assign_expr
     ;
-term
-    : factor ['*' | '/'] factor
+assign_expr
+    : identifier '=' expr 
     ;
-factor 
+addsub_expr
+    : muldiv_expr ['+' | '-'] muldiv_expr
+    ;
+muldiv_expr
+    : primary_expr ['*' | '/'] primary_expr
+    ;
+primary_expr 
     : number 
     | '(' expr ')'
     | identifier

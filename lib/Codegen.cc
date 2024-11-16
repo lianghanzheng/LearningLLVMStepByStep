@@ -100,7 +100,10 @@ llvm::Value *CodegenVisitor::visitAssignExpr(AssignExpr *assignExpr) {
   llvm::Value *lhsVar = varAddrMap[varExpr->name];
   llvm::Value *rhsValue =  assignExpr->rhs->accept(this);
 
-  return builder.CreateStore(rhsValue, lhsVar);
+  builder.CreateStore(rhsValue, lhsVar);
+  
+  // Fold the assign expression to get the address computation result.
+  return rhsValue;
 }
 
 llvm::Value *CodegenVisitor::visitNumberExpr(NumberExpr *numberExpr) {

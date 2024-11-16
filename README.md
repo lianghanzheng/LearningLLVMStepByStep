@@ -27,3 +27,7 @@ cmake --build build
 ## 当前版本的缺陷
 
 1. 在AST中的 `VariableExpr` 听起来像是 `a+b` 这样的表达式，其实它表示的是 `a` 这样的对标识符的访问
+
+## 一些随笔
+
+1. 在Codegen中处理 `AssignExpr` 时直接返回store指令的 `Value` 会在LLVM内部产生一个死循环
