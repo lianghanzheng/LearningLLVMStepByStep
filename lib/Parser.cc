@@ -1,9 +1,11 @@
 #include "Parser.h"
 #include "AST.h"
+#include "DiagEngine.h"
 #include "Lexer.h"
 #include "Sema.h"
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/SMLoc.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <cassert>
@@ -16,12 +18,6 @@ std::shared_ptr<Program> Parser::parseProgram() {
 
   auto prog = std::make_shared<Program>();
   while (tok.tokenType != TokenType::eof) {
-    if (tok.tokenType == TokenType::unknown) {
-      llvm::errs() << "Unknown tokens\n";
-      tok.dump();
-      return nullptr;
-    }
-    
     // Handle null_stmt.
     if (tok.tokenType == TokenType::semi) {
       advance();
@@ -55,11 +51,11 @@ Parser::parseDeclStmt() {
   int flag = 0; // Counter for ','
   while (tok.tokenType != TokenType::semi) {
     if (flag++ > 0) {
-      assert(consume(TokenType::comma));      
+      consume(TokenType::comma);      
     }
     
-    llvm::StringRef varName = tok.content;
-    auto varDecl = sema.semaVariabelDeclNode(varName, baseType);
+    Token tmp = tok;
+    auto varDecl = sema.semaVariabelDeclNode(tmp, baseType);
     // int a = 1; <=> int a; a = 1;
     astVec.push_back(varDecl);
 
@@ -68,7 +64,7 @@ Parser::parseDeclStmt() {
     if (tok.tokenType == TokenType::equal) {
       advance();
       auto rhs = parseExpr();
-      auto varExpr = sema.semaVariableExprNode(varName);
+      auto varExpr = sema.semaVariableExprNode(tmp);
 
       auto assignExpr = sema.semaAssignExprNode(varExpr, rhs);
 
@@ -76,19 +72,16 @@ Parser::parseDeclStmt() {
     }
   }
 
-  assert(consume(TokenType::semi) && 
-         "Expect `;` at the end of a statement\n");
+  consume(TokenType::semi);
 
   return astVec;
 }
 
 std::shared_ptr<ASTNode> Parser::parseAssignExpr() {
-  assert(expect(TokenType::identifier) &&
-         "Lhs of assign expression should be an identifier\n");
-  auto lhsExpr = sema.semaVariableExprNode(tok.content);
+  expect(TokenType::identifier); 
+  auto lhsExpr = sema.semaVariableExprNode(tok);
   advance();
-  assert(consume(TokenType::equal) &&
-         "Expect `=` in assign expression\n");
+  consume(TokenType::equal); 
   auto rhs = parseAddsubExpr();
 
   return sema.semaAssignExprNode(lhsExpr, rhs);
@@ -96,8 +89,7 @@ std::shared_ptr<ASTNode> Parser::parseAssignExpr() {
 
 std::shared_ptr<ASTNode> Parser::parseExprStmt() {
   auto expr = parseExpr();
-  assert(consume(TokenType::semi) && 
-         "Expect `;` at the end of a statement\n");
+  consume(TokenType::semi);
 
   return expr;
 }
@@ -160,25 +152,33 @@ std::shared_ptr<ASTNode> Parser::parsePrimaryExpr() {
   if (tok.tokenType == TokenType::lparen) {
     advance();
     auto expr = parseExpr();
-    assert(expect(TokenType::rparen));
+    expect(TokenType::rparen);
     advance();
     return expr;
   }
   else if (tok.tokenType == TokenType::identifier) {
-    auto expr = sema.semaVariableExprNode(tok.content);
+    auto expr = sema.semaVariableExprNode(tok);
     advance();
     return expr;
   }
   else {
-    assert(expect(TokenType::number));
-    auto factor = sema.semaNumberExprNode(tok.value, tok.kind);
+    expect(TokenType::number);
+    auto factor = sema.semaNumberExprNode(tok, tok.ty);
     advance();
     return factor;
   }
 }
 
 bool Parser::expect(TokenType tokenType) {
-  return tok.tokenType == tokenType;
+  if (tok.tokenType == tokenType) return true;
+
+  getDiagEngine().report(
+      llvm::SMLoc::getFromPointer(tok.content.begin()), 
+      diag::err_expected_token, 
+      Token::getSpellingText(tokenType),
+      tok.content);
+
+  return false;
 }
 
 bool Parser::consume(TokenType tokenType) {
@@ -192,4 +192,8 @@ bool Parser::consume(TokenType tokenType) {
 
 void Parser::advance() {
   lexer.nextToken(tok);
+}
+
+DiagEngine &Parser::getDiagEngine() const {
+  return lexer.getDiagEngine();
 }

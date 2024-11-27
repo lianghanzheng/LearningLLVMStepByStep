@@ -52,7 +52,7 @@ llvm::Value *PrintVisitor::visitNumberExpr(NumberExpr *numExpr) {
 
 llvm::Value *PrintVisitor::visitVariableDecl(VariableDecl *variableDecl) {
   if (variableDecl->ty == CType::getIntTy()) {
-    llvm::outs() << "int " << variableDecl->name;
+    llvm::outs() << "int " << variableDecl->tok.content;
   }
 
   return nullptr;

@@ -28,6 +28,7 @@ private:
   bool expect(TokenType tokenType);
   bool consume(TokenType tokenType);
   void advance();
+  DiagEngine &getDiagEngine() const;
 };
 
 #endif // PARSER_H_

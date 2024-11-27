@@ -3,6 +3,7 @@
 
 #include "Scope.h"
 #include "AST.h"
+#include "DiagEngine.h"
 
 #include "llvm/ADT/StringRef.h"
 
@@ -10,11 +11,13 @@
 
 class Sema {
 public:
-  std::shared_ptr<ASTNode> 
-  semaVariabelDeclNode(llvm::StringRef name, CType *ty);
+  Sema(DiagEngine &diagEngine) : diagEngine(diagEngine) {}
 
   std::shared_ptr<ASTNode> 
-  semaVariableExprNode(llvm::StringRef name);
+  semaVariabelDeclNode(const Token &tok, CType *ty);
+
+  std::shared_ptr<ASTNode> 
+  semaVariableExprNode(const Token &tok);
 
   std::shared_ptr<ASTNode> semaAssignExprNode(
       std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs);
@@ -24,10 +27,11 @@ public:
       std::shared_ptr<ASTNode> lhs, 
       std::shared_ptr<ASTNode> rhs);
 
-  std::shared_ptr<ASTNode> semaNumberExprNode(int value, CType *ty);
+  std::shared_ptr<ASTNode> semaNumberExprNode(const Token &tok, CType *ty);
 
 private:
   Scope scope;
+  DiagEngine &diagEngine;
 };
 
 #endif

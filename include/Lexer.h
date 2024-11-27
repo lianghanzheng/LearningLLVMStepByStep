@@ -2,48 +2,53 @@
 #define LEXER_H_
 
 #include "Type.h"
+#include "DiagEngine.h"
 
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/SourceMgr.h"
 #include <cstdint>
 
 enum class TokenType {
-  identifier,
-  kw_int, // 'int'
-  number,
-  plus,   // '+'
-  minus,  // '-'
-  star,   // '*'
-  slash,  // '/'
-  lparen, // '('
-  rparen, // ')'
-  semi,   // ';'
-  equal,  // '='
-  comma,  // ','
+# define TOKEN(type, spelling) type,
+# include "Token.h.inc"
   eof,
-  unknown
 };
 
 struct Token {
-  Token() : row(-1), 
-            col(-1), 
-            tokenType(TokenType::unknown) {}
   void dump();
+  static llvm::StringRef getSpellingText(TokenType tokenType);
 
   uint32_t row, col;
   TokenType tokenType;
-  int32_t value;
+  int32_t value; // save the number literal
   llvm::StringRef content;
-  CType *kind;
+  //char *ptr;
+  //size_t len;
+  CType *ty;
 };
 
 class Lexer {
 public:
-  Lexer(llvm::StringRef sourceCode);
+  Lexer(llvm::SourceMgr &mgr, DiagEngine &diagEngine)
+      : mgr(mgr), diagEngine(diagEngine) {
+    unsigned id = mgr.getMainFileID();
+    llvm::StringRef mainSrc = mgr.getMemoryBuffer(id)->getBuffer();
+    
+    LineHeadPtr = mainSrc.begin();
+    BufPtr = mainSrc.begin();
+    BufEnd = mainSrc.end(); 
+    row = 1;
+  }
+
   void nextToken(Token &tok);
 
   // For LL(1) parser.
   void saveState(); 
   void restoreState();
+
+  DiagEngine &getDiagEngine() const {
+    return diagEngine;
+  }
 
 private:
   const char *BufPtr;
@@ -51,6 +56,11 @@ private:
   const char *BufEnd;
   uint32_t row;
 
+private:
+  llvm::SourceMgr &mgr;
+  DiagEngine &diagEngine;
+
+private:
   struct State {
     const char *BufPtr;
     const char *LineHeadPtr;

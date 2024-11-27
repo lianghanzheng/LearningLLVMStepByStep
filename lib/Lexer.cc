@@ -1,5 +1,8 @@
 #include "Lexer.h"
+#include "DiagEngine.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/SMLoc.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/FormatVariadic.h"
 #include <cstdint>
@@ -18,16 +21,24 @@ static bool isLetter(char c) {
          ('A' <= c && c <= 'Z') || c == '_';
 }
 
+
+llvm::StringRef Token::getSpellingText(TokenType tokenType) {
+  switch (tokenType) {
+# define TOKEN(type, spelling) \
+  case TokenType::type:      \
+    return spelling;
+# include "Token.h.inc"         
+
+  default:
+    llvm::llvm_unreachable_internal();
+  }
+}
+
 void Token::dump() {
   llvm::errs() << llvm::formatv(
       "[ \"{0}\": row = {1}, col = {2} ]\n", 
       content, row, col);
 }
-
-Lexer::Lexer(llvm::StringRef sourceCode)
-    : LineHeadPtr(sourceCode.begin()),
-      BufPtr(sourceCode.begin()),
-      BufEnd(sourceCode.end()), row(1) {}
 
 void Lexer::nextToken(Token &tok) {
   // Filter the whitespaces.
@@ -60,7 +71,7 @@ void Lexer::nextToken(Token &tok) {
       BufPtr++; 
     }
     tok.value = number;
-    tok.kind = CType::getIntTy();
+    tok.ty = CType::getIntTy();
     tok.content = llvm::StringRef(start, BufPtr-start);
     return;
   }
@@ -87,42 +98,52 @@ void Lexer::nextToken(Token &tok) {
   case '+':
     tok.tokenType = TokenType::plus;
     BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   case '-':
     tok.tokenType = TokenType::minus;
     BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   case '*':
     tok.tokenType = TokenType::star;
     BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   case '/':
     tok.tokenType = TokenType::slash;
     BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   case '(':
     tok.tokenType = TokenType::lparen;
     BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   case ')':
     tok.tokenType = TokenType::rparen;
     BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   case ';':
     tok.tokenType = TokenType::semi;
     BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   case '=':
     tok.tokenType = TokenType::equal;
     BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   case ',':
     tok.tokenType = TokenType::comma;
     BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   default:
-    tok.tokenType = TokenType::unknown;  
+    diagEngine.report(llvm::SMLoc::getFromPointer(BufPtr), diag::err_unknown_char, *BufPtr);  
     BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
   }
   tok.content = llvm::StringRef(start, BufPtr-start);
   return;  

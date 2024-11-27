@@ -1,35 +1,46 @@
 #include "Sema.h"
 #include "AST.h"
+#include "DiagEngine.h"
 
+#include "llvm/ADT/StringRef.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/SMLoc.h"
+#include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <memory>
 
 std::shared_ptr<ASTNode> 
-Sema::semaVariabelDeclNode(llvm::StringRef name, CType *ty) {
+Sema::semaVariabelDeclNode(const Token &tok, CType *ty) {
+  llvm::StringRef name = tok.content;
   std::shared_ptr<Symbol> symbol = scope.findVarSymbolInCurEnv(name);
+  
   if (symbol) {
-    llvm::errs() << "Redefinite variable " << name << "\n";
-    return nullptr;
+    diagEngine.report(
+      llvm::SMLoc::getFromPointer(tok.content.begin()),
+      diag::err_redefined,
+      tok.content);
   }
 
   scope.addSymbol(SymbolKind::LocalVariable, ty, name);
 
 
   auto variableDecl = std::make_shared<VariableDecl>();
-  variableDecl->name = name;
+  variableDecl->tok.content = name;
   variableDecl->ty = ty;
   
   return variableDecl;
 }
 
 std::shared_ptr<ASTNode> 
-Sema::semaVariableExprNode(llvm::StringRef name) {
+Sema::semaVariableExprNode(const Token &tok) {
+  llvm::StringRef name = tok.content;
   std::shared_ptr<Symbol> symbol = scope.findVarSymbol(name);
   if (!symbol) {
-    llvm::errs() << "Undefined variable " << name << "\n";
-    return nullptr;
+    diagEngine.report(
+      llvm::SMLoc::getFromPointer(tok.content.begin()),
+      diag::err_undefined,
+      tok.content);
   }
 
   auto variableExpr = std::make_shared<VariableExpr>();
@@ -41,13 +52,13 @@ Sema::semaVariableExprNode(llvm::StringRef name) {
 
 std::shared_ptr<ASTNode> Sema::semaAssignExprNode(
     std::shared_ptr<ASTNode> lhs, std::shared_ptr<ASTNode> rhs) {
-  if (!lhs || !rhs) {
-    llvm::errs() << "Left or right of assignment expression can't be resolved\n";
-  }
+  assert((lhs && rhs) && 
+         "Left or right of assignment expression can't be resolved\n");
 
   if (!llvm::isa<VariableExpr>(lhs.get())) {
-    llvm::errs() << "Left of assignment expression should be a left value\n";
-    return nullptr;
+    diagEngine.report(
+        llvm::SMLoc::getFromPointer(lhs->tok.content.begin()),
+        diag::err_lvalue);
   }
 
   auto assignExpr = std::make_shared<AssignExpr>();
@@ -61,10 +72,8 @@ std::shared_ptr<ASTNode> Sema::semaBinaryExprNode(
     OpCode op, 
     std::shared_ptr<ASTNode> lhs, 
     std::shared_ptr<ASTNode> rhs) {
-  if (!lhs || !rhs) {
-    llvm::errs() << "Left or right of binary expression can't be resolved\n";
-    return nullptr;
-  }
+  assert((lhs && rhs) && 
+         "Left or right of assignment expression can't be resolved\n");
 
   auto binaryExpr = std::make_shared<BinaryExpr>();
   binaryExpr->op = op;
@@ -74,9 +83,9 @@ std::shared_ptr<ASTNode> Sema::semaBinaryExprNode(
   return binaryExpr;
 }
 
-std::shared_ptr<ASTNode> Sema::semaNumberExprNode(int value, CType *ty) {
+std::shared_ptr<ASTNode> Sema::semaNumberExprNode(const Token &tok, CType *ty) {
   auto numberExpr = std::make_shared<NumberExpr>();
-  numberExpr->number = value;
+  numberExpr->tok = tok;
   numberExpr->ty = ty;
 
   return numberExpr;

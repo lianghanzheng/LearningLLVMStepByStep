@@ -2,6 +2,7 @@
 #define AST_H_
 
 #include "Type.h"
+#include "Lexer.h"
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/IR/Value.h"
@@ -33,6 +34,7 @@ struct ASTNode {
   virtual ~ASTNode() {}
   virtual llvm::Value *accept(Visitor *visitor) { return nullptr; }
   CType *ty;
+  Token tok;
 
   enum NodeKind {
     VariableDecl,
@@ -59,8 +61,6 @@ struct VariableDecl : ASTNode {
   static bool classof(const ASTNode *node) {
     return node->getNodeKind() == NodeKind::VariableDecl;
   }
-
-  llvm::StringRef name;
 };
 
 struct AssignExpr : ASTNode {

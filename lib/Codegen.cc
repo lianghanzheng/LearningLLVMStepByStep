@@ -89,8 +89,8 @@ llvm::Value *CodegenVisitor::visitVariableDecl(VariableDecl *variableDecl) {
     ty = builder.getInt32Ty();
   }
 
-  llvm::Value *declValue =  builder.CreateAlloca(ty, nullptr, variableDecl->name);
-  varAddrMap.insert({variableDecl->name, declValue});
+  llvm::Value *declValue =  builder.CreateAlloca(ty, nullptr, variableDecl->tok.content);
+  varAddrMap.insert({variableDecl->tok.content, declValue});
 
   return declValue;
 }
@@ -107,7 +107,7 @@ llvm::Value *CodegenVisitor::visitAssignExpr(AssignExpr *assignExpr) {
 }
 
 llvm::Value *CodegenVisitor::visitNumberExpr(NumberExpr *numberExpr) {
-  return builder.getInt32(numberExpr->number);
+  return builder.getInt32(numberExpr->tok.value);
 }
 
 llvm::Value *CodegenVisitor::visitVariableExpr(VariableExpr *variableExpr) {
