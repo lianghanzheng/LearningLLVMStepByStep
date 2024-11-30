@@ -11,42 +11,49 @@
 #include <cassert>
 #include <cstdlib>
 #include <memory>
+#include <utility>
 
 std::shared_ptr<Program> Parser::parseProgram() {
   // Initialize member `tok` to the first token.
   advance();
 
-  auto prog = std::make_shared<Program>();
+  auto program = std::make_shared<Program>();
   while (tok.tokenType != TokenType::eof) {
     // Handle null_stmt.
     if (tok.tokenType == TokenType::semi) {
       advance();
       continue;
     }
+    const auto stmt = parseStmt();
+    program->stmtVec.push_back(stmt);
+  }
 
-    // Handle decl_stmt.
-    if (tok.tokenType == TokenType::kw_int) {
-      const auto &exprs = parseDeclStmt();
-      for (auto expr : exprs) {
-        prog->exprVec.push_back(expr);
-      }
-    }
-    else { // handle expr_stmt
-      auto expr = parseExprStmt();
-      if (expr != nullptr) {
-        prog->exprVec.push_back(expr);
-      }
+  return program;
+}
+
+std::shared_ptr<ASTNode> Parser::parseStmt() {
+  // Handle decl_stmt.
+  if (tok.tokenType == TokenType::kw_int) {
+    return parseDeclStmt();
+  }
+  else if (tok.tokenType == TokenType::kw_if) {
+    return parseIfStmt();
+  }
+  else { // handle expr_stmt
+    const auto stmt = parseExprStmt();
+    if (stmt != nullptr) {
+      return stmt;
     }
   }
 
-  return prog;
+  return nullptr;
 }
 
-std::vector<std::shared_ptr<ASTNode>> 
-Parser::parseDeclStmt() {
+std::shared_ptr<ASTNode> Parser::parseDeclStmt() {
   consume(TokenType::kw_int);
   CType *baseType = CType::getIntTy();
-  std::vector<std::shared_ptr<ASTNode>> astVec;
+  auto declStmt = std::make_shared<DeclStmt>();
+  auto &astVec = declStmt->exprVec;
 
   int flag = 0; // Counter for ','
   while (tok.tokenType != TokenType::semi) {
@@ -55,7 +62,7 @@ Parser::parseDeclStmt() {
     }
     
     Token tmp = tok;
-    auto varDecl = sema.semaVariabelDeclNode(tmp, baseType);
+    auto varDecl = sema.semaVariableDeclNode(tmp, baseType);
     // int a = 1; <=> int a; a = 1;
     astVec.push_back(varDecl);
 
@@ -74,7 +81,22 @@ Parser::parseDeclStmt() {
 
   consume(TokenType::semi);
 
-  return astVec;
+  return declStmt;
+}
+
+std::shared_ptr<ASTNode> Parser::parseIfStmt() { 
+  consume(TokenType::kw_if);
+  consume(TokenType::lparen);
+  const auto condExpr = parseExpr();
+  consume(TokenType::rparen);
+  const auto thenStmt = parseStmt();
+  std::shared_ptr<ASTNode> elseStmt = nullptr;
+  if (tok.tokenType == TokenType::kw_else) {
+    consume(TokenType::kw_else);
+    elseStmt = parseStmt();
+  }
+
+  return sema.semaIfStmtNode(condExpr, thenStmt, elseStmt);
 }
 
 std::shared_ptr<ASTNode> Parser::parseAssignExpr() {

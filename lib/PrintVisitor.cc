@@ -1,19 +1,49 @@
 #include "PrintVisitor.h"
 #include "AST.h"
 #include "llvm/IR/Value.h"
+#include "llvm/Support/PointerLikeTypeTraits.h"
 #include "llvm/Support/raw_ostream.h"
+#include <cstdio>
 
 PrintVisitor::PrintVisitor(std::shared_ptr<Program> prog) {
   visitProgram(prog.get());
 }
 
 llvm::Value *PrintVisitor::visitProgram(Program *prog) {
-  for (auto &expr: prog->exprVec) {
+  for (const auto &expr: prog->stmtVec) {
     // 由基类进行类型分发
     expr->accept(this);
-    llvm::outs() << ";\n";
+    llvm::outs() << "\n";
   }
 
+  return nullptr;
+}
+
+llvm::Value *PrintVisitor::visitDeclStmt(DeclStmt *declStmt) {
+  int elemIdx = 0;
+  int size = declStmt->exprVec.size();
+  for (const auto &expr: declStmt->exprVec) {
+    expr->accept(this);
+    elemIdx++;
+    if (elemIdx < size)
+    llvm::outs() << "; ";
+  }
+
+  return nullptr;
+}
+
+llvm::Value *PrintVisitor::visitIfStmt(IfStmt *ifStmt) {
+  llvm::outs() << "if ";
+  ifStmt->condExpr->accept(this);
+  llvm::outs() << "\n  ";
+  ifStmt->thenBody->accept(this); 
+  llvm::outs() << "\n";
+  
+  if (ifStmt->elseBody) {
+    llvm::outs() << "else\n  ";
+    ifStmt->elseBody->accept(this);
+  }
+  
   return nullptr;
 }
 
@@ -44,7 +74,7 @@ llvm::Value *PrintVisitor::visitBinaryExpr(BinaryExpr *binaryExpr) {
 }
 
 llvm::Value *PrintVisitor::visitNumberExpr(NumberExpr *numExpr) {
-  llvm::outs() << numExpr->number;
+  llvm::outs() << numExpr->tok.value;
 
   return nullptr;
 }

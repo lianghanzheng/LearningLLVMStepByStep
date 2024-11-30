@@ -13,8 +13,13 @@ class Sema {
 public:
   Sema(DiagEngine &diagEngine) : diagEngine(diagEngine) {}
 
+  std::shared_ptr<ASTNode>
+  semaIfStmtNode(std::shared_ptr<ASTNode> codeExpr,
+                 std::shared_ptr<ASTNode> thenBody,
+                 std::shared_ptr<ASTNode> elseBody);
+
   std::shared_ptr<ASTNode> 
-  semaVariabelDeclNode(const Token &tok, CType *ty);
+  semaVariableDeclNode(const Token &tok, CType *ty);
 
   std::shared_ptr<ASTNode> 
   semaVariableExprNode(const Token &tok);

@@ -85,6 +85,12 @@ void Lexer::nextToken(Token &tok) {
     if (content == "int") {
       tok.tokenType = TokenType::kw_int;
     }
+    else if (content == "if") {
+      tok.tokenType = TokenType::kw_if;
+    }
+    else if (content == "else") {
+      tok.tokenType = TokenType::kw_else;
+    }
     else {
       tok.tokenType = TokenType::identifier;
     }

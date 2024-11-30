@@ -3,6 +3,8 @@
 #endif
 
 TOKEN(kw_int,     "int")
+TOKEN(kw_if,      "if")
+TOKEN(kw_else,    "else")
 
 TOKEN(plus,       "+")
 TOKEN(minus,      "-")

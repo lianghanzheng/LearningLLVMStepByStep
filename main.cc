@@ -39,8 +39,11 @@ int main(int argc, char **argv) {
 
   Lexer lexer(mgr, diagEngine);
   Token tok;
-  //while (tok.tokenType != TokenType::eof) {
+  //while (true) {
   //  lexer.nextToken(tok);
+  //  if (tok.tokenType == TokenType::eof) {
+  //    break;
+  //  }
   //  tok.dump();
   //}
   

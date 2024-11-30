@@ -2,13 +2,19 @@ prog
     : stmt*
     ;
 stmt
-    : decl_stmt | expr_stmt | null_stmt
+    : decl_stmt 
+    | expr_stmt 
+    | if_stmt 
+    | null_stmt
     ;
 decl_stmt
     : 'int' identifier ('=' expr)? (',' identifier ('=' expr)?)* ';' 
     ;
 expr_stmt
     : expr ';'
+    ;
+if_stmt
+    : 'if' '(' expr ')' stmt ('else' stmt)?
     ;
 null_stmt
     : ';'

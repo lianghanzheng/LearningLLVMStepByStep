@@ -4,6 +4,7 @@
 #include "AST.h"
 
 #include "llvm/ADT/StringMap.h"
+#include "llvm/IR/Function.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/IRBuilder.h"
@@ -13,6 +14,8 @@ struct CodegenVisitor : Visitor {
   CodegenVisitor(std::shared_ptr<Program> prog);
 
   llvm::Value *visitProgram(Program *) override;
+  llvm::Value *visitDeclStmt(DeclStmt *) override;
+  llvm::Value *visitIfStmt(IfStmt *) override;
   llvm::Value *visitBinaryExpr(BinaryExpr *) override;
   llvm::Value *visitVariableDecl(VariableDecl *) override;
   llvm::Value *visitAssignExpr(AssignExpr *) override;
@@ -25,6 +28,7 @@ private:
   llvm::IRBuilder<> builder{context};
 
   llvm::StringMap<llvm::Value *> varAddrMap;
+  llvm::Function *currentFunction;
 };
 
 #endif // CODEGEN_H_

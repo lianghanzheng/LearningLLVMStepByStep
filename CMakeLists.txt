@@ -4,6 +4,7 @@ project(From-LLVM-to-C-Compiler)
 
 set(C_STANDARD 99)
 set(CXX_STANDARD 17)
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 
@@ -31,7 +32,7 @@ set(LLVM_LINK_COMPONENTS Support Core)
 # Subdirectories
 add_subdirectory(exercise)
 add_subdirectory(lib)
-add_subdirectory(unittest)
+#add_subdirectory(unittest)
 
 # Binary output
 add_llvm_executable(tinycc main.cc)

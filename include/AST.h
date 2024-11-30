@@ -12,6 +12,8 @@
 #include <vector>
 
 struct Program;
+struct DeclStmt;
+struct IfStmt;
 struct ASTNode;
 struct VariableDecl;
 struct AssignExpr;
@@ -22,6 +24,8 @@ struct VariableExpr;
 struct Visitor {
   virtual ~Visitor() {}
   virtual llvm::Value *visitProgram(Program *) = 0;
+  virtual llvm::Value *visitDeclStmt(DeclStmt *) = 0;
+  virtual llvm::Value *visitIfStmt(IfStmt *) = 0;
   virtual llvm::Value *visitASTNode(ASTNode *) { return nullptr; }
   virtual llvm::Value *visitVariableDecl(VariableDecl *) = 0;
   virtual llvm::Value *visitAssignExpr(AssignExpr *) = 0;
@@ -37,6 +41,8 @@ struct ASTNode {
   Token tok;
 
   enum NodeKind {
+    DeclStmt,
+    IfStmt,
     VariableDecl,
     BinaryExpr,
     NumberExpr,
@@ -48,6 +54,37 @@ struct ASTNode {
   const NodeKind getNodeKind() const { return kind; }
 
   NodeKind kind;
+};
+
+// TODO: Should we declare statements in a seperate file?
+struct DeclStmt : ASTNode {
+  DeclStmt() : ASTNode(NodeKind::DeclStmt) {}
+
+  std::vector<std::shared_ptr<ASTNode>> exprVec;
+
+  llvm::Value *accept(Visitor *visitor) {
+    return visitor->visitDeclStmt(this);
+  } 
+
+  static bool classof(const ASTNode *node) {
+    return node->getNodeKind() == NodeKind::DeclStmt;
+  }
+};
+
+struct IfStmt : ASTNode {
+  IfStmt() : ASTNode(NodeKind::IfStmt) {}
+  
+  std::shared_ptr<ASTNode> condExpr;
+  std::shared_ptr<ASTNode> thenBody;
+  std::shared_ptr<ASTNode> elseBody;
+
+  llvm::Value *accept(Visitor *visitor) {
+    return visitor->visitIfStmt(this);
+  }
+
+  static bool classof(const ASTNode *node) {
+    return node->getNodeKind() == NodeKind::IfStmt;
+  }
 };
 
 struct VariableDecl : ASTNode {
@@ -129,7 +166,7 @@ struct VariableExpr : ASTNode {
 };
 
 struct Program {
-  std::vector<std::shared_ptr<ASTNode>> exprVec;
+  std::vector<std::shared_ptr<ASTNode>> stmtVec;
   llvm::Value *accept(Visitor *visitor) {
     return visitor->visitProgram(this);
   }

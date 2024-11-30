@@ -10,8 +10,25 @@
 
 #include <memory>
 
+
+std::shared_ptr<ASTNode>
+Sema::semaIfStmtNode(
+    std::shared_ptr<ASTNode> condExpr, 
+    std::shared_ptr<ASTNode> thenBody, 
+    std::shared_ptr<ASTNode> elseBody) {
+  assert((condExpr && thenBody) && 
+         "The condition expression or then body of if statement is NULL\n");
+  
+  auto ifStmt = std::make_shared<IfStmt>();
+  ifStmt->condExpr = condExpr;
+  ifStmt->thenBody = thenBody;
+  ifStmt->elseBody = elseBody;
+
+  return ifStmt;
+}
+
 std::shared_ptr<ASTNode> 
-Sema::semaVariabelDeclNode(const Token &tok, CType *ty) {
+Sema::semaVariableDeclNode(const Token &tok, CType *ty) {
   llvm::StringRef name = tok.content;
   std::shared_ptr<Symbol> symbol = scope.findVarSymbolInCurEnv(name);
   
@@ -86,6 +103,7 @@ std::shared_ptr<ASTNode> Sema::semaBinaryExprNode(
 std::shared_ptr<ASTNode> Sema::semaNumberExprNode(const Token &tok, CType *ty) {
   auto numberExpr = std::make_shared<NumberExpr>();
   numberExpr->tok = tok;
+  numberExpr->number = tok.value;
   numberExpr->ty = ty;
 
   return numberExpr;

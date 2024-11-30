@@ -4,12 +4,14 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/raw_ostream.h"
+#include <asm-generic/errno.h>
 #include <memory>
 
 #define DEBUG_TYPE "CodeGen"
@@ -34,12 +36,14 @@ llvm::Value *CodegenVisitor::visitProgram(Program *prog) {
       mainType, GlobalVariable::ExternalLinkage, 
       "main", m.get());
 
+  currentFunction = mainFunc;
+
   llvm::BasicBlock *entryBB = BasicBlock::Create(context, "entry", mainFunc);
   builder.SetInsertPoint(entryBB);
   
 
   llvm::Value *finalValue = nullptr;
-  for (auto &expr: prog->exprVec) {
+  for (auto &expr: prog->stmtVec) {
     llvm::Value *value = expr->accept(this);
     finalValue = value;
   }
@@ -57,6 +61,54 @@ llvm::Value *CodegenVisitor::visitProgram(Program *prog) {
 
   return nullptr;
 }
+
+llvm::Value *CodegenVisitor::visitDeclStmt(DeclStmt *declStmt) {
+  llvm::Value *lastValue;
+  for (auto &expr: declStmt->exprVec) {
+    lastValue = expr->accept(this);
+  }
+
+  return lastValue;
+}
+
+llvm::Value *CodegenVisitor::visitIfStmt(IfStmt *ifStmt) {
+  llvm::BasicBlock *condBB = llvm::BasicBlock::Create(context, "if.cond", currentFunction);
+  llvm::BasicBlock *thenBB = llvm::BasicBlock::Create(context, "if.then", currentFunction);
+  llvm::BasicBlock *elseBB = nullptr;
+  if (ifStmt->elseBody) {
+     elseBB = llvm::BasicBlock::Create(context, "if.else", currentFunction);
+  }
+  llvm::BasicBlock *lastBB = llvm::BasicBlock::Create(context, "if.last", currentFunction);
+
+  builder.CreateBr(condBB);
+
+  builder.SetInsertPoint(condBB);
+  llvm::Value *val = ifStmt->condExpr->accept(this);
+  llvm::Value *condVal = builder.CreateICmpNE(val, builder.getInt32(0));
+  
+  if (ifStmt->elseBody) {
+    builder.CreateCondBr(condVal, thenBB, elseBB);
+    builder.SetInsertPoint(thenBB);
+    ifStmt->thenBody->accept(this);
+    builder.CreateBr(lastBB);
+
+    builder.SetInsertPoint(elseBB);
+    ifStmt->elseBody->accept(this);
+    builder.CreateBr(lastBB); 
+  }
+  else {
+    builder.CreateCondBr(condBB, thenBB, lastBB);
+
+    builder.SetInsertPoint(thenBB);
+    ifStmt->thenBody->accept(this);
+    builder.CreateBr(lastBB);
+  }
+
+  builder.SetInsertPoint(lastBB);
+
+  return nullptr;
+}
+
 
 llvm::Value *CodegenVisitor::visitBinaryExpr(BinaryExpr *binaryExpr) {
   auto lhs = binaryExpr->lhs->accept(this);
