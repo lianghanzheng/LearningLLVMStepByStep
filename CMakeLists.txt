@@ -31,6 +31,7 @@ set(LLVM_LINK_COMPONENTS Support Core)
 # Subdirectories
 add_subdirectory(exercise)
 add_subdirectory(lib)
+add_subdirectory(unittest)
 
 # Binary output
 add_llvm_executable(tinycc main.cc)
