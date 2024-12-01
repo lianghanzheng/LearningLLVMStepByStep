@@ -35,7 +35,7 @@ class Scope {
 public:
   Scope();
   void enterScope();
-  void exitScop();
+  void exitScope();
   std::shared_ptr<Symbol> findVarSymbol(llvm::StringRef name);
   std::shared_ptr<Symbol> findVarSymbolInCurEnv(llvm::StringRef name);
   void addSymbol(SymbolKind kind, CType *ty, llvm::StringRef name);

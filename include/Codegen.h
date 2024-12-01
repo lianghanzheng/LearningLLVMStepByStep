@@ -14,6 +14,7 @@ struct CodegenVisitor : Visitor {
   CodegenVisitor(std::shared_ptr<Program> prog);
 
   llvm::Value *visitProgram(Program *) override;
+  llvm::Value *visitBlockStmt(BlockStmt *) override;
   llvm::Value *visitDeclStmt(DeclStmt *) override;
   llvm::Value *visitIfStmt(IfStmt *) override;
   llvm::Value *visitBinaryExpr(BinaryExpr *) override;

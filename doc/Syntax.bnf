@@ -2,11 +2,14 @@ prog
     : stmt*
     ;
 stmt
-    : decl_stmt 
+    : block_stmt
+    | decl_stmt 
     | expr_stmt 
     | if_stmt 
     | null_stmt
     ;
+block_stmt
+    : '{' stmt* '}'
 decl_stmt
     : 'int' identifier ('=' expr)? (',' identifier ('=' expr)?)* ';' 
     ;

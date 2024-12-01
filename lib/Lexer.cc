@@ -131,6 +131,16 @@ void Lexer::nextToken(Token &tok) {
     BufPtr++;
     tok.content = llvm::StringRef(start, BufPtr-start);
     break;
+  case '{':
+    tok.tokenType = TokenType::lbrace;
+    BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
+    break;
+  case '}':
+    tok.tokenType = TokenType::rbrace;
+    BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
+    break;
   case ';':
     tok.tokenType = TokenType::semi;
     BufPtr++;

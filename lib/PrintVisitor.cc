@@ -19,6 +19,17 @@ llvm::Value *PrintVisitor::visitProgram(Program *prog) {
   return nullptr;
 }
 
+llvm::Value *PrintVisitor::visitBlockStmt(BlockStmt *blockStmt) {
+  llvm::outs() << "{ ";
+  for (const auto &stmt: blockStmt->stmtVec) {
+    stmt->accept(this);
+    llvm::outs() << "; ";
+  }
+  llvm::outs() << "}";
+
+  return nullptr;
+}
+
 llvm::Value *PrintVisitor::visitDeclStmt(DeclStmt *declStmt) {
   int elemIdx = 0;
   int size = declStmt->exprVec.size();

@@ -8,6 +8,7 @@
 #include "llvm/ADT/StringRef.h"
 
 #include <memory>
+#include <vector>
 
 class Sema {
 public:
@@ -33,6 +34,10 @@ public:
       std::shared_ptr<ASTNode> rhs);
 
   std::shared_ptr<ASTNode> semaNumberExprNode(const Token &tok, CType *ty);
+
+public:
+  void enterScope() { scope.enterScope(); }
+  void exitScope() { scope.enterScope(); }
 
 private:
   Scope scope;

@@ -9,7 +9,7 @@ void Scope::enterScope() {
   envs.push_back(std::make_shared<Env>());
 }
 
-void Scope::exitScop() {
+void Scope::exitScope() {
   envs.pop_back();
 }
 

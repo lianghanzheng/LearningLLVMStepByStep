@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <memory>
 #include <utility>
+#include <vector>
 
 std::shared_ptr<Program> Parser::parseProgram() {
   // Initialize member `tok` to the first token.
@@ -39,6 +40,9 @@ std::shared_ptr<ASTNode> Parser::parseStmt() {
   else if (tok.tokenType == TokenType::kw_if) {
     return parseIfStmt();
   }
+  else if (tok.tokenType == TokenType::lbrace) {
+    return parseBlockStmt();
+  }
   else { // handle expr_stmt
     const auto stmt = parseExprStmt();
     if (stmt != nullptr) {
@@ -47,6 +51,24 @@ std::shared_ptr<ASTNode> Parser::parseStmt() {
   }
 
   return nullptr;
+}
+
+std::shared_ptr<ASTNode> Parser::parseBlockStmt() {
+  consume(TokenType::lbrace); 
+  sema.enterScope();
+
+  auto blockStmt = std::make_shared<BlockStmt>();
+  auto &astVec = blockStmt->stmtVec;
+
+  while (tok.tokenType != TokenType::rbrace) {
+    auto stmt = parseStmt();
+    astVec.push_back(stmt);
+  }
+
+  consume(TokenType::rbrace);
+  sema.exitScope();
+
+  return blockStmt;
 }
 
 std::shared_ptr<ASTNode> Parser::parseDeclStmt() {

@@ -62,6 +62,15 @@ llvm::Value *CodegenVisitor::visitProgram(Program *prog) {
   return nullptr;
 }
 
+llvm::Value *CodegenVisitor::visitBlockStmt(BlockStmt *blockStmt) {
+  llvm::Value *lastValue = nullptr;
+  for (auto &stmt: blockStmt->stmtVec) {
+    lastValue = stmt->accept(this);
+  }
+
+  return lastValue;
+}
+
 llvm::Value *CodegenVisitor::visitDeclStmt(DeclStmt *declStmt) {
   llvm::Value *lastValue;
   for (auto &expr: declStmt->exprVec) {

@@ -18,6 +18,7 @@ private:
   Sema sema;
 
   std::shared_ptr<ASTNode> parseStmt();
+  std::shared_ptr<ASTNode> parseBlockStmt();
   std::shared_ptr<ASTNode> parseDeclStmt();
   std::shared_ptr<ASTNode> parseExprStmt();
   std::shared_ptr<ASTNode> parseIfStmt();

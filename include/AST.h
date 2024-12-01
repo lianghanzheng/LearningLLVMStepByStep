@@ -12,6 +12,7 @@
 #include <vector>
 
 struct Program;
+struct BlockStmt;
 struct DeclStmt;
 struct IfStmt;
 struct ASTNode;
@@ -24,6 +25,7 @@ struct VariableExpr;
 struct Visitor {
   virtual ~Visitor() {}
   virtual llvm::Value *visitProgram(Program *) = 0;
+  virtual llvm::Value *visitBlockStmt(BlockStmt *) = 0;
   virtual llvm::Value *visitDeclStmt(DeclStmt *) = 0;
   virtual llvm::Value *visitIfStmt(IfStmt *) = 0;
   virtual llvm::Value *visitASTNode(ASTNode *) { return nullptr; }
@@ -41,6 +43,7 @@ struct ASTNode {
   Token tok;
 
   enum NodeKind {
+    BlockStmt,
     DeclStmt,
     IfStmt,
     VariableDecl,
@@ -57,6 +60,21 @@ struct ASTNode {
 };
 
 // TODO: Should we declare statements in a seperate file?
+struct BlockStmt : ASTNode {
+  BlockStmt() : ASTNode(NodeKind::BlockStmt) {}
+
+  // TODO: We have not abstract Stmts as an independent Base Class.
+  std::vector<std::shared_ptr<ASTNode>> stmtVec;
+
+  llvm::Value *accept(Visitor *visitor) {
+    return visitor->visitBlockStmt(this);
+  }
+
+  static bool classof(const ASTNode *node) {
+    return node->getNodeKind() == NodeKind::BlockStmt;
+  }
+};
+
 struct DeclStmt : ASTNode {
   DeclStmt() : ASTNode(NodeKind::DeclStmt) {}
 
