@@ -9,7 +9,8 @@
 本仓库代码在LLVM 20.0.0上进行了验证。
 
 ```sh
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_ASSERTIONS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON \
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release \
+-DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_ENABLE_ASSERTIONS=OFF -DLLVM_OPTIMIZED_TABLEGEN=ON \
 -DLLVM_TARGETS_TO_BUILD="X86" -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;mlir;openmp" -DLLVM_BUILD_TOOLS=ON \
 -DLLVM_ENABLE_EH=ON -DLLVM_ENABLE_RTTI=ON \
 -DLLVM_PARALLEL_LINK_JOBS=16 -DCMAKE_INSTALL_PREFIX=/opt/llvm -DLLVM_ENABLE_DOXYGEN=OFF \
@@ -24,9 +25,19 @@ cmake -B build -S .
 cmake --build build
 ```
 
-## 当前版本的缺陷
+## 目前的进度
 
-1. 在AST中的 `VariableExpr` 听起来像是 `a+b` 这样的表达式，其实它表示的是 `a` 这样的对标识符的访问
+- [x] 非负整型及其四则运算
+- [x] 变量
+- [x] `if` 语句
+- [x] 嵌套语句
+- [ ] 循环
+- [ ] 指针
+- [ ] 数组
+- [ ] 结构体
+- [ ] 基本浮点数及其四则运算
+- [ ] 注释
+- [ ] 预处理器
 
 ## 一些随笔
 
