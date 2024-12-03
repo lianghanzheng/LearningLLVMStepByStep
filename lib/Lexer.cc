@@ -141,19 +141,52 @@ void Lexer::nextToken(Token &tok) {
     BufPtr++;
     tok.content = llvm::StringRef(start, BufPtr-start);
     break;
+  case ',':
+    tok.tokenType = TokenType::comma;
+    BufPtr++;
+    tok.content = llvm::StringRef(start, BufPtr-start);
+    break;
   case ';':
     tok.tokenType = TokenType::semi;
     BufPtr++;
     tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   case '=':
-    tok.tokenType = TokenType::equal;
-    BufPtr++;
+    if (*(BufPtr+1) == '=') {
+      tok.tokenType = TokenType::equalequal;
+      BufPtr += 2;
+    } else {
+      tok.tokenType = TokenType::equal;
+      BufPtr++;
+    }
     tok.content = llvm::StringRef(start, BufPtr-start);
     break;
-  case ',':
-    tok.tokenType = TokenType::comma;
-    BufPtr++;
+  case '!':
+    if (*(BufPtr+1) == '=') {
+      tok.tokenType = TokenType::notequal;
+      BufPtr += 2;
+      tok.content = llvm::StringRef(start, BufPtr-start);
+      break;
+    }
+    // else fall back to diagEngine
+  case '<':
+    if (*(BufPtr+1) == '=') {
+      tok.tokenType = TokenType::lesseq;
+      BufPtr += 2;
+    } else {
+      tok.tokenType = TokenType::less;
+      BufPtr++;
+    }
+    tok.content = llvm::StringRef(start, BufPtr-start);
+    break;
+  case '>':
+    if (*(BufPtr+1) == '=') {
+      tok.tokenType = TokenType::greatereq;
+      BufPtr += 2;
+    } else {
+      tok.tokenType = TokenType::greater;
+      BufPtr++;
+    }
     tok.content = llvm::StringRef(start, BufPtr-start);
     break;
   default:

@@ -76,6 +76,18 @@ llvm::Value *PrintVisitor::visitBinaryExpr(BinaryExpr *binaryExpr) {
   case OpCode::div:
     llvm::outs() << " / ";
     break;
+  case OpCode::equalequal:
+    llvm::outs() << " == ";
+  case OpCode::notequal:
+    llvm::outs() << " != ";
+  case OpCode::less:
+    llvm::outs() << " < ";
+  case OpCode::lesseq:
+    llvm::outs() << " <= ";
+  case OpCode::greater:
+    llvm::outs() << " > ";
+  case OpCode::greatereq:
+    llvm::outs() << " >= ";
   }
 
   binaryExpr->rhs->accept(this);

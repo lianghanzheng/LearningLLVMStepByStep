@@ -1,4 +1,5 @@
 #include "Codegen.h"
+#include "AST.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -137,8 +138,30 @@ llvm::Value *CodegenVisitor::visitBinaryExpr(BinaryExpr *binaryExpr) {
   case OpCode::div:
     value = builder.CreateSDiv(lhs, rhs);
     break; 
-  default:
-    return nullptr;
+  case OpCode::equalequal:
+    value = builder.CreateICmpEQ(lhs, rhs);
+    value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
+    break;
+  case OpCode::notequal:
+    value = builder.CreateICmpNE(lhs, rhs);
+    value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
+    break;
+  case OpCode::less:
+    value = builder.CreateICmpSLT(lhs, rhs);
+    value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
+    break;
+  case OpCode::lesseq:
+    value = builder.CreateICmpSLE(lhs, rhs);
+    value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
+    break;
+  case OpCode::greater:
+    value = builder.CreateICmpSGT(lhs, rhs);
+    value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
+    break;
+  case OpCode::greatereq:
+    value = builder.CreateICmpSGE(lhs, rhs);
+    value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
+    break;
   }
 
   return value;

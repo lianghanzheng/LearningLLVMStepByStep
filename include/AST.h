@@ -134,7 +134,10 @@ struct AssignExpr : ASTNode {
 };
 
 enum class OpCode {
-  add, sub, mul, div
+  add, sub, mul, div,
+  equalequal, notequal,
+  less, lesseq,
+  greater, greatereq
 };
 
 /// On behalf of `Expr` and `Term` within our grammer.

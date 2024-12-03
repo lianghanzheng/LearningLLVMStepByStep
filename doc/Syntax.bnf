@@ -23,9 +23,14 @@ null_stmt
     : ';'
     ;
 expr  
-    : addsub_expr
-    | assign_expr
+    : assign_expr
+    | equal_expr
     ;
+equal_expr
+    : relation_expr (['==' | '!='] relation_expr)*
+    ;
+relation_expr
+    : addsub_expr ['<' | '>' | '<=' | '>='] addsub_expr
 assign_expr
     : identifier '=' expr 
     ;

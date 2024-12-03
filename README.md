@@ -31,6 +31,7 @@ cmake --build build
 - [x] 变量
 - [x] `if` 语句
 - [x] 嵌套语句
+- [x] 关系表达式
 - [ ] 循环
 - [ ] 指针
 - [ ] 数组
@@ -42,3 +43,4 @@ cmake --build build
 ## 一些随笔
 
 1. 在Codegen中处理 `AssignExpr` 时直接返回store指令的 `Value` 会在LLVM内部产生一个死循环
+2. 关系表达式会返回一个 `getInt1Ty` 的类型，直接使用这个value进行其它32位类型运算时会产生一个错误

@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <memory>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -152,12 +153,49 @@ std::shared_ptr<ASTNode> Parser::parseExpr() {
   lexer.restoreState();
 
   if (!isAssignExpr) {
-    return parseAddsubExpr();
+    return parseEqualExpr();
   }
   else {
     return parseAssignExpr();
   }
 
+}
+
+std::shared_ptr<ASTNode> Parser::parseEqualExpr() {
+  auto lhs = parseRelationExpr();
+  while (tok.tokenType == TokenType::equalequal ||
+         tok.tokenType == TokenType::notequal) {
+    OpCode op = tok.tokenType == TokenType::equalequal ?
+                OpCode::equalequal : OpCode::notequal;
+    advance();
+
+    auto rhs = parseRelationExpr();
+    auto binaryExpr = sema.semaBinaryExprNode(op, lhs, rhs);
+    lhs = binaryExpr;
+  }
+
+  return lhs;
+}
+
+std::shared_ptr<ASTNode> Parser::parseRelationExpr() {
+  auto lhs = parseAddsubExpr();
+  if (tok.tokenType == TokenType::less ||
+      tok.tokenType == TokenType::lesseq ||
+      tok.tokenType == TokenType::greater ||
+      tok.tokenType == TokenType::greatereq) {
+    OpCode op;
+    if (tok.tokenType == TokenType::less) op = OpCode::less;
+    else if (tok.tokenType == TokenType::lesseq) op = OpCode::lesseq;
+    else if (tok.tokenType == TokenType::greater) op = OpCode::greater;
+    else op = OpCode::greatereq;
+    advance();
+
+    auto rhs = parseAddsubExpr();
+    auto binaryExpr = sema.semaBinaryExprNode(op, lhs, rhs);
+    lhs = binaryExpr;
+  }
+
+  return lhs;
 }
 
 std::shared_ptr<ASTNode> Parser::parseAddsubExpr() {

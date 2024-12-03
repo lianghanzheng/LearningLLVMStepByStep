@@ -23,6 +23,8 @@ private:
   std::shared_ptr<ASTNode> parseExprStmt();
   std::shared_ptr<ASTNode> parseIfStmt();
   std::shared_ptr<ASTNode> parseExpr();
+  std::shared_ptr<ASTNode> parseEqualExpr();
+  std::shared_ptr<ASTNode> parseRelationExpr();
   std::shared_ptr<ASTNode> parseAssignExpr();
   std::shared_ptr<ASTNode> parseAddsubExpr();
   std::shared_ptr<ASTNode> parseMuldivExpr();
