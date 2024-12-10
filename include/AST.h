@@ -15,6 +15,7 @@ struct Program;
 struct BlockStmt;
 struct DeclStmt;
 struct IfStmt;
+struct ForStmt;
 struct ASTNode;
 struct VariableDecl;
 struct AssignExpr;
@@ -28,6 +29,7 @@ struct Visitor {
   virtual llvm::Value *visitBlockStmt(BlockStmt *) = 0;
   virtual llvm::Value *visitDeclStmt(DeclStmt *) = 0;
   virtual llvm::Value *visitIfStmt(IfStmt *) = 0;
+  virtual llvm::Value *visitForStmt(ForStmt *) = 0;
   virtual llvm::Value *visitASTNode(ASTNode *) { return nullptr; }
   virtual llvm::Value *visitVariableDecl(VariableDecl *) = 0;
   virtual llvm::Value *visitAssignExpr(AssignExpr *) = 0;
@@ -46,6 +48,7 @@ struct ASTNode {
     BlockStmt,
     DeclStmt,
     IfStmt,
+    ForStmt,
     VariableDecl,
     BinaryExpr,
     NumberExpr,
@@ -102,6 +105,23 @@ struct IfStmt : ASTNode {
 
   static bool classof(const ASTNode *node) {
     return node->getNodeKind() == NodeKind::IfStmt;
+  }
+};
+
+struct ForStmt : ASTNode {
+  ForStmt() : ASTNode(NodeKind::ForStmt) {}
+
+  std::shared_ptr<ASTNode> initExpr;
+  std::shared_ptr<ASTNode> condExpr;
+  std::shared_ptr<ASTNode> incExpr;
+  std::shared_ptr<ASTNode> forBody;
+
+  llvm::Value *accept(Visitor *visitor) {
+    return visitor->visitForStmt(this);
+  }
+
+  static bool classof(const ASTNode *node) {
+    return node->getNodeKind() == NodeKind::ForStmt;
   }
 };
 

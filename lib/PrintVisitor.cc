@@ -58,6 +58,29 @@ llvm::Value *PrintVisitor::visitIfStmt(IfStmt *ifStmt) {
   return nullptr;
 }
 
+llvm::Value *PrintVisitor::visitForStmt(ForStmt *forStmt) {
+  llvm::outs() << "for (";
+  
+  if (forStmt->initExpr) {
+    forStmt->initExpr->accept(this);
+  }
+  llvm::outs() << ";";
+  if (forStmt->condExpr) {
+    forStmt->condExpr->accept(this);
+  }
+  llvm::outs() << ";";
+  if (forStmt->incExpr) {
+    forStmt->incExpr->accept(this);
+  }
+  llvm::outs() << ")\n";
+
+  if (forStmt->forBody) {
+    forStmt->forBody->accept(this);
+  }
+ 
+  return nullptr;
+}
+
 llvm::Value *PrintVisitor::visitBinaryExpr(BinaryExpr *binaryExpr) {
 
   llvm::outs() << "(";
@@ -78,16 +101,22 @@ llvm::Value *PrintVisitor::visitBinaryExpr(BinaryExpr *binaryExpr) {
     break;
   case OpCode::equalequal:
     llvm::outs() << " == ";
+    break;
   case OpCode::notequal:
     llvm::outs() << " != ";
+    break;
   case OpCode::less:
     llvm::outs() << " < ";
+    break;
   case OpCode::lesseq:
     llvm::outs() << " <= ";
+    break;
   case OpCode::greater:
     llvm::outs() << " > ";
+    break;
   case OpCode::greatereq:
     llvm::outs() << " >= ";
+    break;
   }
 
   binaryExpr->rhs->accept(this);

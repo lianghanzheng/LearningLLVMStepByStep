@@ -34,6 +34,11 @@ std::shared_ptr<Program> Parser::parseProgram() {
 }
 
 std::shared_ptr<ASTNode> Parser::parseStmt() {
+  if (tok.tokenType == TokenType::semi) {
+    advance();
+    return nullptr;
+  }
+  
   // Handle decl_stmt.
   if (tok.tokenType == TokenType::kw_int) {
     return parseDeclStmt();
@@ -43,6 +48,9 @@ std::shared_ptr<ASTNode> Parser::parseStmt() {
   }
   else if (tok.tokenType == TokenType::lbrace) {
     return parseBlockStmt();
+  }
+  else if (tok.tokenType == TokenType::kw_for) {
+    return parseForStmt();
   }
   else { // handle expr_stmt
     const auto stmt = parseExprStmt();
@@ -120,6 +128,52 @@ std::shared_ptr<ASTNode> Parser::parseIfStmt() {
   }
 
   return sema.semaIfStmtNode(condExpr, thenStmt, elseStmt);
+}
+
+static bool isTypeName(Token &tok) {
+  if (tok.tokenType == TokenType::kw_int) {
+    return true;
+  }
+
+  return false;
+}
+
+std::shared_ptr<ASTNode> Parser::parseForStmt() {
+  consume(TokenType::kw_for);
+  consume(TokenType::lparen);
+
+  std::shared_ptr<ASTNode> initExpr = nullptr;
+  std::shared_ptr<ASTNode> condExpr = nullptr;
+  std::shared_ptr<ASTNode> incExpr = nullptr;
+  std::shared_ptr<ASTNode> forBody = nullptr;
+
+  sema.enterScope();
+
+  if (isTypeName(tok)) {
+    initExpr = parseDeclStmt();
+  }
+  else {
+    // We have to recognize empty expression manully.
+    if (tok.tokenType != TokenType::semi) initExpr = parseExpr();
+    consume(TokenType::semi);
+  }
+
+  if (tok.tokenType != TokenType::semi) condExpr = parseExpr();
+  consume(TokenType::semi);
+  if (tok.tokenType != TokenType::rparen) incExpr = parseExpr();
+  consume(TokenType::rparen);
+  
+  forBody = parseStmt();
+  
+  sema.exitScope();
+
+  auto forStmt = std::make_shared<ForStmt>();
+  forStmt->initExpr = initExpr;
+  forStmt->condExpr = condExpr;
+  forStmt->incExpr = incExpr;
+  forStmt->forBody = forBody;
+
+  return forStmt;
 }
 
 std::shared_ptr<ASTNode> Parser::parseAssignExpr() {

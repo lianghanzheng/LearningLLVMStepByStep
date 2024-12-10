@@ -49,11 +49,16 @@ llvm::Value *CodegenVisitor::visitProgram(Program *prog) {
     finalValue = value;
   }
   
-  // To avoid the ConstantFolder in builder by default.
-  (void)builder.CreateCall(printfFunc, {
-      builder.CreateGlobalString("Expr value = %d\n"),
-      finalValue
-  });
+  if (finalValue) {
+    // To avoid the ConstantFolder in builder by default.
+    (void)builder.CreateCall(printfFunc, {
+        builder.CreateGlobalString("Expr value = %d\n"),
+        finalValue
+    });
+  }
+  else {
+    llvm::outs() << "Last statement is not a expression statement\n";
+  }
   
   (void)builder.CreateRet(builder.getInt32(0));
 
@@ -119,6 +124,46 @@ llvm::Value *CodegenVisitor::visitIfStmt(IfStmt *ifStmt) {
   return nullptr;
 }
 
+llvm::Value *CodegenVisitor::visitForStmt(ForStmt *forStmt) {
+  auto initBB = llvm::BasicBlock::Create(context, "for.init", currentFunction);
+  auto condBB = llvm::BasicBlock::Create(context, "for.cond", currentFunction);
+  auto incBB = llvm::BasicBlock::Create(context, "for.inc", currentFunction);
+  auto bodyBB = llvm::BasicBlock::Create(context, "for.body", currentFunction);
+  auto lastBB = llvm::BasicBlock::Create(context, "for.last", currentFunction);
+
+  builder.CreateBr(initBB);
+  builder.SetInsertPoint(initBB);
+  if (forStmt->initExpr) {
+    forStmt->initExpr->accept(this);
+  }
+  builder.CreateBr(condBB);
+  
+  builder.SetInsertPoint(condBB);
+  if (forStmt->condExpr) {
+    llvm::Value *val = forStmt->condExpr->accept(this);
+    llvm::Value *condVal = builder.CreateICmpNE(val, builder.getInt32(0));
+    builder.CreateCondBr(condVal, bodyBB, lastBB);
+  }
+  else {
+    builder.CreateBr(bodyBB);
+  }
+
+  builder.SetInsertPoint(bodyBB);
+  if (forStmt->forBody) {
+    forStmt->forBody->accept(this);
+  }  
+  builder.CreateBr(incBB);
+
+  builder.SetInsertPoint(incBB);
+  if (forStmt->incExpr) {
+    forStmt->incExpr->accept(this);
+  }
+  builder.CreateBr(condBB);
+
+  builder.SetInsertPoint(lastBB);
+
+  return nullptr;
+}
 
 llvm::Value *CodegenVisitor::visitBinaryExpr(BinaryExpr *binaryExpr) {
   auto lhs = binaryExpr->lhs->accept(this);

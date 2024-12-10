@@ -22,6 +22,7 @@ private:
   std::shared_ptr<ASTNode> parseDeclStmt();
   std::shared_ptr<ASTNode> parseExprStmt();
   std::shared_ptr<ASTNode> parseIfStmt();
+  std::shared_ptr<ASTNode> parseForStmt();
   std::shared_ptr<ASTNode> parseExpr();
   std::shared_ptr<ASTNode> parseEqualExpr();
   std::shared_ptr<ASTNode> parseRelationExpr();

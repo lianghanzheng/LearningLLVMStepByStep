@@ -5,6 +5,7 @@
 TOKEN(kw_int,     "int")
 TOKEN(kw_if,      "if")
 TOKEN(kw_else,    "else")
+TOKEN(kw_for,     "for")
 
 TOKEN(plus,       "+")
 TOKEN(minus,      "-")

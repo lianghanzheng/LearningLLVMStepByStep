@@ -10,6 +10,7 @@ struct PrintVisitor : Visitor {
   llvm::Value *visitBlockStmt(BlockStmt *) override;
   llvm::Value *visitDeclStmt(DeclStmt *) override;
   llvm::Value *visitIfStmt(IfStmt *) override;
+  llvm::Value *visitForStmt(ForStmt *) override;
   llvm::Value *visitVariableDecl(VariableDecl *) override;
   llvm::Value *visitAssignExpr(AssignExpr *) override;
   llvm::Value *visitBinaryExpr(BinaryExpr *) override;

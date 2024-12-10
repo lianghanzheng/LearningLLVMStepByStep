@@ -6,6 +6,7 @@ stmt
     | decl_stmt 
     | expr_stmt 
     | if_stmt 
+    | for_stmt
     | null_stmt
     ;
 block_stmt
@@ -19,6 +20,9 @@ expr_stmt
 if_stmt
     : 'if' '(' expr ')' stmt ('else' stmt)?
     ;
+for_stmt
+    : 'for' '(' expr? ';' expr? ';' expr? ')' stmt
+    | 'for' '(' decl_stmt expr? ';' expr? ')' stmt
 null_stmt
     : ';'
     ;
