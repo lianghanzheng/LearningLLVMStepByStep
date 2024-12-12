@@ -34,6 +34,7 @@ std::shared_ptr<Program> Parser::parseProgram() {
 }
 
 std::shared_ptr<ASTNode> Parser::parseStmt() {
+  // Handle null_stmt.
   if (tok.tokenType == TokenType::semi) {
     advance();
     return nullptr;
@@ -52,14 +53,16 @@ std::shared_ptr<ASTNode> Parser::parseStmt() {
   else if (tok.tokenType == TokenType::kw_for) {
     return parseForStmt();
   }
+  else if (tok.tokenType == TokenType::kw_break) {
+    return parseBreakStmt();
+  }
+  else if (tok.tokenType == TokenType::kw_continue) {
+    return parseContinueStmt();
+  }
   else { // handle expr_stmt
     const auto stmt = parseExprStmt();
-    if (stmt != nullptr) {
-      return stmt;
-    }
+    return stmt;
   }
-
-  return nullptr;
 }
 
 std::shared_ptr<ASTNode> Parser::parseBlockStmt() {
@@ -148,6 +151,9 @@ std::shared_ptr<ASTNode> Parser::parseForStmt() {
   std::shared_ptr<ASTNode> forBody = nullptr;
 
   sema.enterScope();
+  auto forStmt = std::make_shared<ForStmt>();
+  breakableStmts.push_back(forStmt);
+  continableStmts.push_back(forStmt);
 
   if (isTypeName(tok)) {
     initExpr = parseDeclStmt();
@@ -166,14 +172,43 @@ std::shared_ptr<ASTNode> Parser::parseForStmt() {
   forBody = parseStmt();
   
   sema.exitScope();
+  breakableStmts.pop_back();
+  continableStmts.pop_back();
 
-  auto forStmt = std::make_shared<ForStmt>();
   forStmt->initExpr = initExpr;
   forStmt->condExpr = condExpr;
   forStmt->incExpr = incExpr;
   forStmt->forBody = forBody;
 
   return forStmt;
+}
+
+std::shared_ptr<ASTNode> Parser::parseBreakStmt() {
+  if (breakableStmts.size() == 0) {
+    getDiagEngine().report(
+        llvm::SMLoc::getFromPointer(tok.content.begin()), 
+        diag::err_break_stmt);
+  }
+  
+  consume(TokenType::kw_break);
+  auto breakStmt = std::make_shared<BreakStmt>();
+  breakStmt->target = breakableStmts.back();
+  consume(TokenType::semi);
+  return breakStmt;
+}
+
+std::shared_ptr<ASTNode> Parser::parseContinueStmt() {
+  if (continableStmts.size() == 0) {
+    getDiagEngine().report(
+        llvm::SMLoc::getFromPointer(tok.content.begin()), 
+        diag::err_continue_stmt);
+  }
+
+  consume(TokenType::kw_continue);
+  auto continueStmt = std::make_shared<ContinueStmt>();
+  continueStmt->target = continableStmts.back();
+  consume(TokenType::semi);
+  return continueStmt;
 }
 
 std::shared_ptr<ASTNode> Parser::parseAssignExpr() {

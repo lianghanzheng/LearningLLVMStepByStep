@@ -131,6 +131,9 @@ llvm::Value *CodegenVisitor::visitForStmt(ForStmt *forStmt) {
   auto bodyBB = llvm::BasicBlock::Create(context, "for.body", currentFunction);
   auto lastBB = llvm::BasicBlock::Create(context, "for.last", currentFunction);
 
+  breakBBs.insert({forStmt, lastBB});
+  continueBBs.insert({forStmt, incBB});
+
   builder.CreateBr(initBB);
   builder.SetInsertPoint(initBB);
   if (forStmt->initExpr) {
@@ -161,6 +164,29 @@ llvm::Value *CodegenVisitor::visitForStmt(ForStmt *forStmt) {
   builder.CreateBr(condBB);
 
   builder.SetInsertPoint(lastBB);
+
+  breakBBs.erase(forStmt);
+  continueBBs.erase(forStmt);
+
+  return nullptr;
+}
+
+llvm::Value *CodegenVisitor::visitBreakStmt(BreakStmt *breakStmt) {
+  auto targetBB = breakBBs[breakStmt->target.get()];
+  builder.CreateBr(targetBB);
+
+  auto deathBB = llvm::BasicBlock::Create(context, "for.break.death", currentFunction);
+  builder.SetInsertPoint(deathBB);
+
+  return nullptr;
+}
+
+llvm::Value *CodegenVisitor::visitContinueStmt(ContinueStmt *continueStmt) {
+  auto targetBB = continueBBs[continueStmt->target.get()];
+  builder.CreateBr(targetBB);
+
+  auto deathBB = llvm::BasicBlock::Create(context, "for.continue.death", currentFunction);
+  builder.SetInsertPoint(deathBB);
 
   return nullptr;
 }

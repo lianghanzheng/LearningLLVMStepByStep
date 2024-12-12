@@ -32,7 +32,7 @@ cmake --build build
 - [x] `if` 语句
 - [x] 嵌套语句
 - [x] 关系表达式
-- [ ] 循环
+- [x] 循环
 - [ ] 指针
 - [ ] 数组
 - [ ] 结构体
@@ -44,6 +44,7 @@ cmake --build build
 
 1. 在Codegen中处理 `AssignExpr` 时直接返回store指令的 `Value` 会在LLVM内部产生一个死循环
 2. 关系表达式会返回一个 `getInt1Ty` 的类型，直接使用这个value进行其它32位类型运算时会产生一个错误
+3. 在生成 `break` 和 `continue` 代码时，需要插入新的基本块 (但是我在使用clang生成IR中没有看到因为这两条指令生成的新基本块)
 
 ## 已知错误
 

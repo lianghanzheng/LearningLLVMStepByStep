@@ -4,6 +4,7 @@
 #include "Lexer.h"
 #include "AST.h"
 #include "Sema.h"
+#include <vector>
 
 class Parser {
 public:
@@ -17,12 +18,20 @@ private:
   Token tok;
   Sema sema;
 
+private:
+  // Record the precursor of break and continue statements.
+  std::vector<std::shared_ptr<ASTNode>> breakableStmts;
+  std::vector<std::shared_ptr<ASTNode>> continableStmts;
+
+private:
   std::shared_ptr<ASTNode> parseStmt();
   std::shared_ptr<ASTNode> parseBlockStmt();
   std::shared_ptr<ASTNode> parseDeclStmt();
   std::shared_ptr<ASTNode> parseExprStmt();
   std::shared_ptr<ASTNode> parseIfStmt();
   std::shared_ptr<ASTNode> parseForStmt();
+  std::shared_ptr<ASTNode> parseBreakStmt();
+  std::shared_ptr<ASTNode> parseContinueStmt();
   std::shared_ptr<ASTNode> parseExpr();
   std::shared_ptr<ASTNode> parseEqualExpr();
   std::shared_ptr<ASTNode> parseRelationExpr();

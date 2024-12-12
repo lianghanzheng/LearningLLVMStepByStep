@@ -12,11 +12,13 @@
 #include <vector>
 
 struct Program;
+struct ASTNode;
 struct BlockStmt;
 struct DeclStmt;
 struct IfStmt;
 struct ForStmt;
-struct ASTNode;
+struct BreakStmt;
+struct ContinueStmt;
 struct VariableDecl;
 struct AssignExpr;
 struct BinaryExpr;
@@ -30,6 +32,8 @@ struct Visitor {
   virtual llvm::Value *visitDeclStmt(DeclStmt *) = 0;
   virtual llvm::Value *visitIfStmt(IfStmt *) = 0;
   virtual llvm::Value *visitForStmt(ForStmt *) = 0;
+  virtual llvm::Value *visitBreakStmt(BreakStmt *) = 0;
+  virtual llvm::Value *visitContinueStmt(ContinueStmt *) = 0;
   virtual llvm::Value *visitASTNode(ASTNode *) { return nullptr; }
   virtual llvm::Value *visitVariableDecl(VariableDecl *) = 0;
   virtual llvm::Value *visitAssignExpr(AssignExpr *) = 0;
@@ -49,6 +53,8 @@ struct ASTNode {
     DeclStmt,
     IfStmt,
     ForStmt,
+    BreakStmt,
+    ContinueStmt,
     VariableDecl,
     BinaryExpr,
     NumberExpr,
@@ -122,6 +128,36 @@ struct ForStmt : ASTNode {
 
   static bool classof(const ASTNode *node) {
     return node->getNodeKind() == NodeKind::ForStmt;
+  }
+};
+
+struct BreakStmt : ASTNode {
+  BreakStmt() : ASTNode(NodeKind::BreakStmt) {}
+
+  // Record the loop used `break`.
+  std::shared_ptr<ASTNode> target;
+
+  llvm::Value *accept(Visitor *visitor) {
+    return visitor->visitBreakStmt(this);
+  }
+
+  static bool classof(const ASTNode *node) {
+    return node->getNodeKind() == NodeKind::BreakStmt;
+  }
+};
+
+struct ContinueStmt : ASTNode {
+  ContinueStmt() : ASTNode(NodeKind::ContinueStmt) {}
+
+  // Record the loop used `continue`.
+  std::shared_ptr<ASTNode> target;
+
+  llvm::Value *accept(Visitor *visitor) {
+    return visitor->visitContinueStmt(this);
+  }
+
+  static bool classof(const ASTNode *node) {
+    return node->getNodeKind() == NodeKind::ContinueStmt;
   }
 };
 

@@ -81,6 +81,16 @@ llvm::Value *PrintVisitor::visitForStmt(ForStmt *forStmt) {
   return nullptr;
 }
 
+llvm::Value *PrintVisitor::visitBreakStmt(BreakStmt *breakStmt) {
+  llvm::outs() << "break";
+  return nullptr;
+}
+
+llvm::Value *PrintVisitor::visitContinueStmt(ContinueStmt *continueStmt) {
+  llvm::outs() << "continue";
+  return nullptr;
+}
+
 llvm::Value *PrintVisitor::visitBinaryExpr(BinaryExpr *binaryExpr) {
 
   llvm::outs() << "(";

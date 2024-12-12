@@ -11,6 +11,8 @@ struct PrintVisitor : Visitor {
   llvm::Value *visitDeclStmt(DeclStmt *) override;
   llvm::Value *visitIfStmt(IfStmt *) override;
   llvm::Value *visitForStmt(ForStmt *) override;
+  llvm::Value *visitBreakStmt(BreakStmt *) override;
+  llvm::Value *visitContinueStmt(ContinueStmt *) override;
   llvm::Value *visitVariableDecl(VariableDecl *) override;
   llvm::Value *visitAssignExpr(AssignExpr *) override;
   llvm::Value *visitBinaryExpr(BinaryExpr *) override;

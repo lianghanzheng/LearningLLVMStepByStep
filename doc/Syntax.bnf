@@ -7,6 +7,8 @@ stmt
     | expr_stmt 
     | if_stmt 
     | for_stmt
+    | break_stmt
+    | continue_stmt
     | null_stmt
     ;
 block_stmt
@@ -23,6 +25,13 @@ if_stmt
 for_stmt
     : 'for' '(' expr? ';' expr? ';' expr? ')' stmt
     | 'for' '(' decl_stmt expr? ';' expr? ')' stmt
+    ;
+break_stmt
+    : 'break' ';'
+    ;
+continue_stmt
+    : 'continue' ';'
+    ;
 null_stmt
     : ';'
     ;

@@ -4,6 +4,8 @@
 #include "AST.h"
 
 #include "llvm/ADT/StringMap.h"
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -18,6 +20,8 @@ struct CodegenVisitor : Visitor {
   llvm::Value *visitDeclStmt(DeclStmt *) override;
   llvm::Value *visitIfStmt(IfStmt *) override;
   llvm::Value *visitForStmt(ForStmt *) override;
+  llvm::Value *visitBreakStmt(BreakStmt *) override;
+  llvm::Value *visitContinueStmt(ContinueStmt *) override;
   llvm::Value *visitBinaryExpr(BinaryExpr *) override;
   llvm::Value *visitVariableDecl(VariableDecl *) override;
   llvm::Value *visitAssignExpr(AssignExpr *) override;
@@ -30,6 +34,10 @@ private:
   llvm::IRBuilder<> builder{context};
 
   llvm::StringMap<llvm::Value *> varAddrMap;
+  llvm::DenseMap<ASTNode *, llvm::BasicBlock *> breakBBs;
+  llvm::DenseMap<ASTNode *, llvm::BasicBlock *> continueBBs;
+
+  
   llvm::Function *currentFunction;
 };
 

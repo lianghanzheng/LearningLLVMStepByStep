@@ -94,6 +94,12 @@ void Lexer::nextToken(Token &tok) {
     else if (content == "for") {
       tok.tokenType = TokenType::kw_for;
     }
+    else if (content == "break") {
+      tok.tokenType = TokenType::kw_break;
+    }
+    else if (content == "continue") {
+      tok.tokenType = TokenType::kw_continue;
+    }
     else {
       tok.tokenType = TokenType::identifier;
     }
