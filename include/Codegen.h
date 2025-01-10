@@ -13,6 +13,7 @@
 #include "llvm/IR/Value.h"
 
 struct CodegenVisitor : Visitor {
+public:
   CodegenVisitor(std::shared_ptr<Program> prog);
 
   llvm::Value *visitProgram(Program *) override;
@@ -27,6 +28,11 @@ struct CodegenVisitor : Visitor {
   llvm::Value *visitAssignExpr(AssignExpr *) override;
   llvm::Value *visitNumberExpr(NumberExpr *) override;
   llvm::Value *visitVariableExpr(VariableExpr *) override;
+
+public:
+  inline llvm::Module *getModule() const  {
+    return m.get();
+  }
 
 private:
   llvm::LLVMContext context;

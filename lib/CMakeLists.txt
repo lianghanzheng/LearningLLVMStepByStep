@@ -7,4 +7,5 @@ add_llvm_library(TinyCFrontend
   Scope.cc
   Sema.cc
   DiagEngine.cc
+  Basic.cc
 )

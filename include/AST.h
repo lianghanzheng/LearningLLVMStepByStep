@@ -75,7 +75,7 @@ struct BlockStmt : ASTNode {
   // TODO: We have not abstract Stmts as an independent Base Class.
   std::vector<std::shared_ptr<ASTNode>> stmtVec;
 
-  llvm::Value *accept(Visitor *visitor) {
+  llvm::Value *accept(Visitor *visitor) override {
     return visitor->visitBlockStmt(this);
   }
 
@@ -89,7 +89,7 @@ struct DeclStmt : ASTNode {
 
   std::vector<std::shared_ptr<ASTNode>> exprVec;
 
-  llvm::Value *accept(Visitor *visitor) {
+  llvm::Value *accept(Visitor *visitor) override {
     return visitor->visitDeclStmt(this);
   } 
 
@@ -105,7 +105,7 @@ struct IfStmt : ASTNode {
   std::shared_ptr<ASTNode> thenBody;
   std::shared_ptr<ASTNode> elseBody;
 
-  llvm::Value *accept(Visitor *visitor) {
+  llvm::Value *accept(Visitor *visitor) override {
     return visitor->visitIfStmt(this);
   }
 
@@ -122,7 +122,7 @@ struct ForStmt : ASTNode {
   std::shared_ptr<ASTNode> incExpr;
   std::shared_ptr<ASTNode> forBody;
 
-  llvm::Value *accept(Visitor *visitor) {
+  llvm::Value *accept(Visitor *visitor) override {
     return visitor->visitForStmt(this);
   }
 
@@ -137,7 +137,7 @@ struct BreakStmt : ASTNode {
   // Record the loop used `break`.
   std::shared_ptr<ASTNode> target;
 
-  llvm::Value *accept(Visitor *visitor) {
+  llvm::Value *accept(Visitor *visitor) override {
     return visitor->visitBreakStmt(this);
   }
 
@@ -152,7 +152,7 @@ struct ContinueStmt : ASTNode {
   // Record the loop used `continue`.
   std::shared_ptr<ASTNode> target;
 
-  llvm::Value *accept(Visitor *visitor) {
+  llvm::Value *accept(Visitor *visitor) override {
     return visitor->visitContinueStmt(this);
   }
 
@@ -164,7 +164,7 @@ struct ContinueStmt : ASTNode {
 struct VariableDecl : ASTNode {
   VariableDecl() : ASTNode(NodeKind::VariableDecl) {}
 
-  llvm::Value *accept(Visitor *visitor) {
+  llvm::Value *accept(Visitor *visitor) override {
     return visitor->visitVariableDecl(this);
   }
   
@@ -180,7 +180,7 @@ struct AssignExpr : ASTNode {
   std::shared_ptr<ASTNode> lhs; 
   std::shared_ptr<ASTNode> rhs;
 
-  llvm::Value* accept(Visitor *visitor) {
+  llvm::Value* accept(Visitor *visitor) override {
     return visitor->visitAssignExpr(this);
   }
 
