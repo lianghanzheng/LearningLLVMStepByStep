@@ -41,6 +41,8 @@
 #include <string>
 #include <system_error>
 
+static llvm::codegen::RegisterCodeGenFlags CGF;
+
 static llvm::cl::opt<std::string>
     InputFile(llvm::cl::Positional, 
               llvm::cl::desc("<input-files>"),
