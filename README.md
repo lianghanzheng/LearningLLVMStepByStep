@@ -45,6 +45,7 @@ cmake --build build
 1. 在Codegen中处理 `AssignExpr` 时直接返回store指令的 `Value` 会在LLVM内部产生一个死循环
 2. 关系表达式会返回一个 `getInt1Ty` 的类型，直接使用这个value进行其它32位类型运算时会产生一个错误
 3. 在生成 `break` 和 `continue` 代码时，需要插入新的基本块 (但是我在使用clang生成IR中没有看到因为这两条指令生成的新基本块)
+4. 在使用 `llvm::codegen` 名称空间的一些函数时，如 `llvm::codegen::getMArch` 时，需要声明全局变量 `static llvm::codegen::RegisterCodeGenFlags CGF`，否则会引起段错误
 
 ## 已知错误
 
