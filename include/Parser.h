@@ -4,6 +4,7 @@
 #include "Lexer.h"
 #include "AST.h"
 #include "Sema.h"
+#include <memory>
 #include <vector>
 
 class Parser {
@@ -33,8 +34,14 @@ private:
   std::shared_ptr<ASTNode> parseBreakStmt();
   std::shared_ptr<ASTNode> parseContinueStmt();
   std::shared_ptr<ASTNode> parseExpr();
+  std::shared_ptr<ASTNode> parseLogicExpr();
+  std::shared_ptr<ASTNode> parseLogAndExpr();
+  std::shared_ptr<ASTNode> parseBitOrExpr();
+  std::shared_ptr<ASTNode> parseBitXorExpr();
+  std::shared_ptr<ASTNode> parseBitAndExpr();
   std::shared_ptr<ASTNode> parseEqualExpr();
   std::shared_ptr<ASTNode> parseRelationExpr();
+  std::shared_ptr<ASTNode> parseShiftExpr();
   std::shared_ptr<ASTNode> parseAssignExpr();
   std::shared_ptr<ASTNode> parseAddsubExpr();
   std::shared_ptr<ASTNode> parseMuldivExpr();

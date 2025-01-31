@@ -6,6 +6,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/FormatVariadic.h"
 #include <cstdint>
+#include <cstring>
 #include <string>
 
 static bool isWhiteSpace(char c) {
@@ -40,14 +41,51 @@ void Token::dump() {
       content, row, col);
 }
 
-void Lexer::nextToken(Token &tok) {
-  // Filter the whitespaces.
-  while (isWhiteSpace(*BufPtr)) {
-    if (*BufPtr == '\n') {
-      row++;
-      LineHeadPtr = BufPtr + 1;
+bool Lexer::startWith(const char *p) {
+  return !strncmp(BufPtr, p, strlen(p));
+}
+
+void Lexer::processComment() {
+  // Handle single line comment.
+  if (startWith("//")) {
+    BufPtr += 2;
+    while (*BufPtr != '\n') {
+      BufPtr++;
     }
+    // Consume '\n'.
+    row++;
+    LineHeadPtr = BufPtr + 1;
     BufPtr++;
+  }
+  // Handle multiple line comments.
+  else if (startWith("/*")) {
+    BufPtr += 2;
+    while (!startWith("*/")) {
+      if (*BufPtr == '\n') {
+        row++;
+        LineHeadPtr = BufPtr + 1;
+      }
+      BufPtr++;
+    }
+    // Consume "*/".
+    BufPtr += 2;
+  }
+}
+
+void Lexer::nextToken(Token &tok) { 
+  // Filter the whitespaces and comments.
+  while (isWhiteSpace(*BufPtr) || startWith("//") || startWith("/*")) {
+    while (isWhiteSpace(*BufPtr)) {
+      if (*BufPtr == '\n') {
+        row++;
+        LineHeadPtr = BufPtr + 1;
+      }
+      BufPtr++;
+    }
+
+    while (startWith("//") || startWith("/*")) {
+      processComment();
+    }
   }
 
   tok.row = row;
@@ -182,7 +220,12 @@ void Lexer::nextToken(Token &tok) {
     if (*(BufPtr+1) == '=') {
       tok.tokenType = TokenType::lesseq;
       BufPtr += 2;
-    } else {
+    }
+    else if (*(BufPtr) == '<') {
+      tok.tokenType = TokenType::lessless;
+      BufPtr += 2;
+    } 
+    else {
       tok.tokenType = TokenType::less;
       BufPtr++;
     }
@@ -192,11 +235,44 @@ void Lexer::nextToken(Token &tok) {
     if (*(BufPtr+1) == '=') {
       tok.tokenType = TokenType::greatereq;
       BufPtr += 2;
-    } else {
+    }
+    else if (*(BufPtr+1) == '>') {
+      tok.tokenType = TokenType::greatgreat;
+      BufPtr += 2;
+    } 
+    else {
       tok.tokenType = TokenType::greater;
       BufPtr++;
     }
     tok.content = llvm::StringRef(start, BufPtr-start);
+    break;
+  case '|':
+    if (*(BufPtr+1) == '|') {
+      tok.tokenType = TokenType::pipepipe;
+      BufPtr += 2;
+    }
+    else {
+      tok.tokenType = TokenType::pipe;
+      BufPtr++;
+    }
+    break;
+  case '&':
+    if (*(BufPtr+1) == '&') {
+      tok.tokenType = TokenType::ampamp;
+      BufPtr += 2;
+    }
+    else {
+      tok.tokenType = TokenType::amp;
+      BufPtr++;
+    }
+    break;
+  case '^':
+    tok.tokenType = TokenType::caret;
+    BufPtr++;
+    break;
+  case '%':
+    tok.tokenType = TokenType::percent;
+    BufPtr++;
     break;
   default:
     diagEngine.report(llvm::SMLoc::getFromPointer(BufPtr), diag::err_unknown_char, *BufPtr);  

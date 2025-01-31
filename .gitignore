@@ -7,6 +7,7 @@ build/
 *.lo
 *.o
 *.obj
+*.ll
 
 # Precompiled Headers
 *.gch

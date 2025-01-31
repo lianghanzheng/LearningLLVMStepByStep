@@ -193,7 +193,11 @@ enum class OpCode {
   add, sub, mul, div,
   equalequal, notequal,
   less, lesseq,
-  greater, greatereq
+  greater, greatereq,
+  logor, logand, bit_or, bit_and,
+  bit_xor, 
+  mod,
+  leftshift, rightshift
 };
 
 /// On behalf of `Expr` and `Term` within our grammer.

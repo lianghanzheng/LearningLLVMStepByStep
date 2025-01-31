@@ -5,6 +5,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Type.h"
@@ -111,7 +112,7 @@ llvm::Value *CodegenVisitor::visitIfStmt(IfStmt *ifStmt) {
     builder.CreateBr(lastBB); 
   }
   else {
-    builder.CreateCondBr(condBB, thenBB, lastBB);
+    builder.CreateCondBr(condVal, thenBB, lastBB);
 
     builder.SetInsertPoint(thenBB);
     ifStmt->thenBody->accept(this);
@@ -191,50 +192,171 @@ llvm::Value *CodegenVisitor::visitContinueStmt(ContinueStmt *continueStmt) {
 }
 
 llvm::Value *CodegenVisitor::visitBinaryExpr(BinaryExpr *binaryExpr) {
-  auto lhs = binaryExpr->lhs->accept(this);
-  auto rhs = binaryExpr->rhs->accept(this);
   llvm::Value *value;
 
   switch (binaryExpr->op) {
-  case OpCode::add:
+  case OpCode::add: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
     value = builder.CreateNSWAdd(lhs, rhs);
-    break;
-  case OpCode::sub:
+    return value;
+  }
+  case OpCode::sub: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
     value = builder.CreateNSWSub(lhs, rhs);
-    break;
-  case OpCode::mul:
+    return value;
+  }
+  case OpCode::mul: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
     value = builder.CreateNSWMul(lhs, rhs);
-    break;
-  case OpCode::div:
+    return value;
+  }
+  case OpCode::div: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
     value = builder.CreateSDiv(lhs, rhs);
-    break; 
-  case OpCode::equalequal:
+    return value;
+  }
+  case OpCode::mod: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
+    value = builder.CreateSRem(lhs, rhs);
+    return value;
+  }
+  case OpCode::logor: {
+    llvm::BasicBlock *ltrue = llvm::BasicBlock::Create(context, "ltrue");
+    llvm::BasicBlock *lfalse = llvm::BasicBlock::Create(context, "lfalse", currentFunction);
+    llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context, "mergeBB");
+
+    auto lhs = binaryExpr->lhs->accept(this);
+    llvm::Value *lhsCond = builder.CreateICmpNE(lhs, builder.getInt32(0));
+    builder.CreateCondBr(lhsCond, ltrue, lfalse);
+
+    builder.SetInsertPoint(lfalse);
+    auto rhs = binaryExpr->rhs->accept(this);
+    llvm::Value *rhsCond = builder.CreateICmpNE(rhs, builder.getInt32(0));
+    rhsCond = builder.CreateZExt(rhsCond, builder.getInt32Ty());    
+    builder.CreateBr(mergeBB);
+
+    // Builder may create other basic blocks in the recursive decentdent.
+    // The `lfalse` should may the basic block which create `rhsCond`.
+    lfalse = builder.GetInsertBlock();
+
+    ltrue->insertInto(currentFunction);
+    builder.SetInsertPoint(ltrue);
+    builder.CreateBr(mergeBB);    
+
+    mergeBB->insertInto(currentFunction);
+    builder.SetInsertPoint(mergeBB);
+    llvm::PHINode *phi = builder.CreatePHI(builder.getInt32Ty(), 2);
+    // Use the right relation.
+    phi->addIncoming(rhsCond, lfalse);
+    phi->addIncoming(builder.getInt32(1), ltrue);
+
+    return phi;
+  }
+  case OpCode::logand: { 
+    llvm::BasicBlock *ltrue = llvm::BasicBlock::Create(context, "ltrue", currentFunction);
+    llvm::BasicBlock *lfalse = llvm::BasicBlock::Create(context, "lfalse", currentFunction);
+    llvm::BasicBlock *mergeBB = llvm::BasicBlock::Create(context, "mergeBB", currentFunction);
+
+    auto lhs = binaryExpr->lhs->accept(this);
+    llvm::Value *lhsCond = builder.CreateICmpNE(lhs, builder.getInt32(0));
+    builder.CreateCondBr(lhsCond, ltrue, lfalse);
+
+    builder.SetInsertPoint(ltrue);
+    auto rhs = binaryExpr->rhs->accept(this);
+    llvm::Value *rhsCond = builder.CreateICmpNE(rhs, builder.getInt32(0));
+    rhsCond = builder.CreateZExt(rhsCond, builder.getInt32Ty());    
+    builder.CreateBr(mergeBB);
+
+    ltrue = builder.GetInsertBlock();
+
+    builder.SetInsertPoint(lfalse);
+    builder.CreateBr(mergeBB);   
+
+    builder.SetInsertPoint(mergeBB);
+    llvm::PHINode *phi = builder.CreatePHI(builder.getInt32Ty(), 2);
+    phi->addIncoming(rhsCond, ltrue);
+    phi->addIncoming(builder.getInt32(0), lfalse);
+
+    return phi;
+  }
+  case OpCode::bit_or: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
+    value = builder.CreateAnd(lhs, rhs);
+    return value;
+  }
+  case OpCode::bit_xor: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
+    value = builder.CreateXor(lhs, rhs);
+    return value;
+  }
+  case OpCode::bit_and: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
+    value = builder.CreateAnd(lhs, rhs);
+    return value;
+  }
+  case OpCode::leftshift: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
+    value = builder.CreateShl(lhs, rhs);
+    return value;
+  }
+  case OpCode::rightshift: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
+    value = builder.CreateAShr(lhs, rhs);
+    return value;
+  }
+  case OpCode::equalequal: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
     value = builder.CreateICmpEQ(lhs, rhs);
     value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
-    break;
-  case OpCode::notequal:
+    return value;
+  }
+  case OpCode::notequal: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
     value = builder.CreateICmpNE(lhs, rhs);
     value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
-    break;
-  case OpCode::less:
+    return value;
+  }
+  case OpCode::less: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
     value = builder.CreateICmpSLT(lhs, rhs);
     value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
-    break;
-  case OpCode::lesseq:
+    return value;
+  }
+  case OpCode::lesseq: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
     value = builder.CreateICmpSLE(lhs, rhs);
     value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
-    break;
-  case OpCode::greater:
+    return value;
+  }
+  case OpCode::greater: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
     value = builder.CreateICmpSGT(lhs, rhs);
     value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
-    break;
-  case OpCode::greatereq:
+    return value;
+  }
+  case OpCode::greatereq: {
+    auto lhs = binaryExpr->lhs->accept(this);
+    auto rhs = binaryExpr->rhs->accept(this);
     value = builder.CreateICmpSGE(lhs, rhs);
     value = builder.CreateIntCast(value, builder.getInt32Ty(), true);
-    break;
+    return value;
   }
-
-  return value;
+  }
 }
 
 llvm::Value *CodegenVisitor::visitVariableDecl(VariableDecl *variableDecl) {

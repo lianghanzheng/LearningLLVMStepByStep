@@ -5,3 +5,15 @@ if (b >= 0)
 else
   a = 1;
 a;
+
+if (a || b && a) {
+  a << 2;
+  b = b >> 1;
+  a = a & b;
+  a = a | b ^ a;
+  b = a % 10;
+}
+
+if (a) { b = b + 10; }
+
+b;

@@ -216,7 +216,7 @@ std::shared_ptr<ASTNode> Parser::parseAssignExpr() {
   auto lhsExpr = sema.semaVariableExprNode(tok);
   advance();
   consume(TokenType::equal); 
-  auto rhs = parseAddsubExpr();
+  auto rhs = parseLogicExpr();
 
   return sema.semaAssignExprNode(lhsExpr, rhs);
 }
@@ -242,12 +242,71 @@ std::shared_ptr<ASTNode> Parser::parseExpr() {
   lexer.restoreState();
 
   if (!isAssignExpr) {
-    return parseEqualExpr();
+    return parseLogicExpr();
   }
   else {
     return parseAssignExpr();
   }
+}
 
+std::shared_ptr<ASTNode> Parser::parseLogicExpr() {
+  auto lhs = parseLogAndExpr();
+  while (tok.tokenType == TokenType::pipepipe) {
+    advance();
+    auto rhs = parseLogAndExpr();
+    auto binaryExpr = sema.semaBinaryExprNode(OpCode::logor, lhs, rhs);
+    lhs = binaryExpr;
+  }
+
+  return lhs;
+}
+
+std::shared_ptr<ASTNode> Parser::parseLogAndExpr() {
+  auto lhs = parseBitOrExpr();
+  while (tok.tokenType == TokenType::ampamp) {
+    advance();
+    auto rhs = parseBitOrExpr();
+    auto binaryExpr = sema.semaBinaryExprNode(OpCode::logand, lhs, rhs);
+    lhs = binaryExpr;
+  }
+
+  return lhs;
+}
+
+std::shared_ptr<ASTNode> Parser::parseBitOrExpr() {
+  auto lhs = parseBitXorExpr();
+  while (tok.tokenType == TokenType::pipe) {
+    advance();
+    auto rhs = parseBitXorExpr();
+    auto binaryExpr = sema.semaBinaryExprNode(OpCode::bit_or, lhs, rhs);
+    lhs = binaryExpr;
+  }
+
+  return lhs;
+}
+
+std::shared_ptr<ASTNode> Parser::parseBitXorExpr() {
+ auto lhs = parseBitAndExpr();
+ while (tok.tokenType == TokenType::caret) {
+  advance();
+  auto rhs = parseBitAndExpr();
+  auto binaryExpr = sema.semaBinaryExprNode(OpCode::bit_xor, lhs, rhs);
+  lhs = binaryExpr;
+ }
+
+ return lhs;
+}
+
+std::shared_ptr<ASTNode> Parser::parseBitAndExpr() {
+  auto lhs = parseEqualExpr();
+  while (tok.tokenType == TokenType::amp) {
+    advance();
+    auto rhs = parseEqualExpr();
+    auto binaryExpr = sema.semaBinaryExprNode(OpCode::bit_and, lhs, rhs);
+    lhs = binaryExpr;
+  }
+
+  return lhs;
 }
 
 std::shared_ptr<ASTNode> Parser::parseEqualExpr() {
@@ -267,8 +326,8 @@ std::shared_ptr<ASTNode> Parser::parseEqualExpr() {
 }
 
 std::shared_ptr<ASTNode> Parser::parseRelationExpr() {
-  auto lhs = parseAddsubExpr();
-  if (tok.tokenType == TokenType::less ||
+  auto lhs = parseShiftExpr();
+  while (tok.tokenType == TokenType::less ||
       tok.tokenType == TokenType::lesseq ||
       tok.tokenType == TokenType::greater ||
       tok.tokenType == TokenType::greatereq) {
@@ -277,6 +336,23 @@ std::shared_ptr<ASTNode> Parser::parseRelationExpr() {
     else if (tok.tokenType == TokenType::lesseq) op = OpCode::lesseq;
     else if (tok.tokenType == TokenType::greater) op = OpCode::greater;
     else op = OpCode::greatereq;
+    advance();
+
+    auto rhs = parseShiftExpr();
+    auto binaryExpr = sema.semaBinaryExprNode(op, lhs, rhs);
+    lhs = binaryExpr;
+  }
+
+  return lhs;
+}
+
+std::shared_ptr<ASTNode> Parser::parseShiftExpr() {
+  auto lhs = parseAddsubExpr();
+  while (tok.tokenType == TokenType::lessless || 
+         tok.tokenType == TokenType::greatgreat)  {
+    OpCode op;
+    if (tok.tokenType == TokenType::lessless) op = OpCode::leftshift;
+    else op = OpCode::rightshift;
     advance();
 
     auto rhs = parseAddsubExpr();
@@ -305,9 +381,14 @@ std::shared_ptr<ASTNode> Parser::parseAddsubExpr() {
 
 std::shared_ptr<ASTNode> Parser::parseMuldivExpr() {
   auto lhs = parsePrimaryExpr();
-  while (tok.tokenType == TokenType::star || tok.tokenType == TokenType::slash) {
-    OpCode op = tok.tokenType == TokenType::star ? 
-                OpCode::mul : OpCode::div;
+  while (tok.tokenType == TokenType::star || 
+         tok.tokenType == TokenType::slash ||
+         tok.tokenType == TokenType::percent) {
+    OpCode op;
+    if (tok.tokenType == TokenType::star) op = OpCode::mul;
+    else if (tok.tokenType == TokenType::slash) op = OpCode::div;
+    else op = OpCode::mod;
+
     advance();
     
     auto rhs = parsePrimaryExpr();

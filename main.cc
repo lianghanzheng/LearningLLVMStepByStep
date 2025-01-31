@@ -220,8 +220,8 @@ int main(int argc, const char **argv) {
 
   llvm::Module *M = cg.getModule();
   if (!emit(argv[0], M, TM, InputFile)) {
-    llvm::WithColor::error(llvm::errs(), argv[0])
-      << "Error writing output\n";
+  llvm::WithColor::error(llvm::errs(), argv[0])
+    << "Error writing output\n";
   }
 
   return 0;

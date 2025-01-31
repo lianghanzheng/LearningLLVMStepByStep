@@ -37,13 +37,31 @@ null_stmt
     ;
 expr  
     : assign_expr
-    | equal_expr
+    | logic_expr
+    ;
+logic_expr
+    : logand_expr ('||' logand_expr)*
+    ;
+logand_expr
+    : bitor_expr ('&&' bitor_expr)*
+    ;
+bitor_expr
+    : bitxor_expr ('|' bitxor_expr)*
+    ;
+bitxor_expr
+    : bitand_expr ('^' bitand_expr)*
+    ;
+bitand_expr
+    : equal_expr ('&' equal_expr)*
     ;
 equal_expr
     : relation_expr (['==' | '!='] relation_expr)*
     ;
 relation_expr
-    : addsub_expr ['<' | '>' | '<=' | '>='] addsub_expr
+    : shift_expr (['<' | '>' | '<=' | '>='] shift_expr)*
+    ;
+shift_expr
+    : addsub_expr (['<<' | '>>'] addsub_expr)*
 assign_expr
     : identifier '=' expr 
     ;
@@ -51,7 +69,7 @@ addsub_expr
     : muldiv_expr ['+' | '-'] muldiv_expr
     ;
 muldiv_expr
-    : primary_expr ['*' | '/'] primary_expr
+    : primary_expr ['*' | '/' | '%'] primary_expr
     ;
 primary_expr 
     : number 

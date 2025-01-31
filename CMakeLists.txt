@@ -52,7 +52,7 @@ set(LLVM_LINK_COMPONENTS
   Support
   TransformUtils
   Vectorize
-  X86CodeGen
+  #X86CodeGen
   CodeGenTypes
 )
 

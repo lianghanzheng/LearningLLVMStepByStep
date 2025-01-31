@@ -57,6 +57,10 @@ private:
   uint32_t row;
 
 private:
+  bool startWith(const char *p);
+  void processComment();
+
+private:
   llvm::SourceMgr &mgr;
   DiagEngine &diagEngine;
 
